@@ -1,6 +1,6 @@
 # Networking Labs
 
-Hands-on networking labs focused on **how systems communicate, how traffic flows, and how access is controlled across networks**.
+Hands-on networking labs focused on how systems communicate, how traffic is controlled, and how networks are secured in real-world environments.
 
 ---
 
@@ -8,43 +8,35 @@ Hands-on networking labs focused on **how systems communicate, how traffic flows
 
 Build practical ability to:
 
-- Understand and trace network communication  
-- Configure and verify segmentation (VLANs, routing)  
-- Analyze traffic and protocols (Wireshark, tcpdump)  
-- Troubleshoot connectivity and misconfigurations  
-- Detect abnormal or suspicious behavior  
+- Design segmented networks (VLANs, inter-VLAN routing)  
+- Configure and validate dynamic routing (OSPF)  
+- Enforce access control using ACLs  
+- Implement NAT for internal-to-external communication  
+- Apply network hardening techniques to defend against common attacks  
 
 ---
 
 ## Why This Matters
 
-All systems rely on networks.
+Modern systems rely on networks.
 
-Understanding how traffic moves is critical to:
+Understanding how traffic flows—and how to control it—is critical for:
 
+- Enforcing access between systems  
 - Identifying misconfigurations  
-- Tracing communication paths  
-- Detecting unauthorized or abnormal activity  
-- Enforcing access control between systems  
-
-Without this, it’s difficult to:
-
-- Troubleshoot real environments  
-- Understand how systems interact  
-- Recognize when something is wrong  
+- Detecting abnormal or unauthorized activity  
+- Securing communication paths  
 
 ---
 
-## What’s Covered
+## Featured Labs
 
-- VLANs and network segmentation  
-- Inter-VLAN routing  
-- Access Control Lists (ACLs)  
+- VLAN Segmentation & Inter-VLAN Routing  
+- OSPF Multi-Router Network  
+- Access Control with ACLs  
 - Network Address Translation (NAT)  
-- Traffic analysis (Wireshark, tcpdump)  
-- Network scanning and enumeration (Nmap)  
-- DNS behavior and resolution  
-- Basic monitoring and detection concepts (IDS/IPS, Zeek)  
+- Network Hardening (Port Security, DHCP Snooping, ARP Inspection)  
+- CCNA Mega Lab (Full Network Integration)  
 
 ---
 
@@ -52,20 +44,20 @@ Without this, it’s difficult to:
 
 Each lab focuses on:
 
-- Building or configuring a scenario  
-- Observing how the network behaves  
-- Identifying what works vs what breaks  
-- Explaining why it happens  
+- Building a working network scenario  
+- Validating behavior and connectivity  
+- Identifying misconfigurations or failures  
+- Explaining why the system behaves the way it does  
 
-The goal is not just to follow steps, but to:
+The goal is not just configuration, but:
 
-> **Understand system behavior, validate configurations, and explain outcomes clearly**
+> **understanding system behavior, enforcing control, and explaining outcomes clearly**
 
 ---
 
 ## Environment
 
-All labs are built and tested in a controlled environment using tools such as:
+All labs are built and tested using:
 
 - Cisco Packet Tracer  
 - Wireshark  
