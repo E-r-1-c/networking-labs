@@ -1,56 +1,73 @@
 # Networking Labs
 
-Hands-on labs focused on understanding, analyzing, and monitoring network communication in real-world environments.
+Hands-on networking labs focused on **how systems communicate, how traffic flows, and how access is controlled across networks**.
 
-## Goal
+---
 
-Develop the ability to:
-- understand how systems communicate across networks
-- analyze traffic and protocols
-- troubleshoot connectivity and failures
-- identify abnormal or malicious network behavior
+## Objective
+
+Build practical ability to:
+
+- Understand and trace network communication  
+- Configure and verify segmentation (VLANs, routing)  
+- Analyze traffic and protocols (Wireshark, tcpdump)  
+- Troubleshoot connectivity and misconfigurations  
+- Detect abnormal or suspicious behavior  
+
+---
 
 ## Why This Matters
 
-All attacks move through networks.
+All systems rely on networks.
 
-If I cannot:
-- understand how data flows between systems
-- recognize normal vs abnormal traffic
-- trace communication paths
+Understanding how traffic moves is critical to:
 
-Then I cannot answer:
-- how an attacker gained access
-- how they are moving through a network
-- what systems are exposed or compromised
+- Identifying misconfigurations  
+- Tracing communication paths  
+- Detecting unauthorized or abnormal activity  
+- Enforcing access control between systems  
 
-Which means:
-- I cannot detect intrusions
-- I cannot investigate lateral movement
-- I cannot secure network communication
+Without this, it’s difficult to:
 
-## What’s Inside
+- Troubleshoot real environments  
+- Understand how systems interact  
+- Recognize when something is wrong  
 
-This repository contains hands-on labs covering:
+---
 
-- core networking concepts and protocols  
-- traffic analysis using tools like Wireshark and tcpdump  
-- network scanning and enumeration (Nmap)  
-- DNS and reconnaissance techniques  
-- network monitoring and detection (IDS/IPS, Zeek)  
-- network architecture and hardening  
+## What’s Covered
 
-## Lab Structure
+- VLANs and network segmentation  
+- Inter-VLAN routing  
+- Access Control Lists (ACLs)  
+- Network Address Translation (NAT)  
+- Traffic analysis (Wireshark, tcpdump)  
+- Network scanning and enumeration (Nmap)  
+- DNS behavior and resolution  
+- Basic monitoring and detection concepts (IDS/IPS, Zeek)  
 
-Each lab is documented using a consistent structure:
+---
 
-- What happened  
-- What I analyzed  
-- What stood out  
-- Why it matters  
-- How it could be detected or prevented  
+## Lab Approach
 
-The focus is not on repeating steps, but on:
-- understanding communication behavior  
-- identifying anomalies  
-- explaining impact clearly  
+Each lab focuses on:
+
+- Building or configuring a scenario  
+- Observing how the network behaves  
+- Identifying what works vs what breaks  
+- Explaining why it happens  
+
+The goal is not just to follow steps, but to:
+
+> **Understand system behavior, validate configurations, and explain outcomes clearly**
+
+---
+
+## Environment
+
+All labs are built and tested in a controlled environment using tools such as:
+
+- Cisco Packet Tracer  
+- Wireshark  
+- tcpdump  
+- Linux-based systems  
