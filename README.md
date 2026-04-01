@@ -19,11 +19,14 @@ Build practical ability to:
 ## Labs (In Progress)
 
 - [x] VLAN Segmentation & Inter-VLAN Routing  
+- [ ] Switching Fundamentals (LAN, VLANs, Trunking)  
+- [ ] Spanning Tree Protocol (STP)  
 - [ ] OSPF Multi-Router Network  
-- [ ] Access Control with ACLs  
+- [ ] Access Control Lists (ACLs)  
 - [ ] Network Address Translation (NAT)  
 - [ ] Network Hardening (Port Security, DHCP Snooping, ARP Inspection)  
-- [ ] CCNA Mega Lab (Full Network Integration)
+- [ ] GRE Tunnel Implementation  
+- [ ] Enterprise Network Build (Integrated Lab)
 
 ---
 
