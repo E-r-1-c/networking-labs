@@ -100,7 +100,12 @@ The network was tested to verify:
 - Devices in the same VLAN can communicate  
 - Devices in different VLANs are isolated before routing  
 - Inter-VLAN communication works after routing is enabled  
-- Routing functions correctly across all VLANs  
+
+---
+
+## Connectivity Test
+
+![Ping Test](images/ping-test.png)
 
 ---
 
