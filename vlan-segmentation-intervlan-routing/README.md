@@ -27,7 +27,7 @@ The lab progresses through three stages:
 
 - Created VLAN 10 (Engineering), VLAN 20 (HR), VLAN 30 (Sales)  
 - Assigned switch ports to each VLAN  
-- Verified devices in different VLANs cannot communicate  
+- Verified devices in different VLANs cannot communicate directly - traffic must go through a router 
 
 ---
 
