@@ -77,8 +77,6 @@ The lab progresses through three stages:
 
 ### STP State Verification
 
-![STP Verify](images/stp-verify.png)
-
 - Confirmed root bridge election  
 - Verified correct port roles and states  
 - Observed blocked ports preventing loops  
