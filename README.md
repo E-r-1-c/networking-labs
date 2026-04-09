@@ -19,7 +19,7 @@ Build practical ability to:
 ## Labs (In Progress)
 
 - [x] VLAN Segmentation & Inter-VLAN Routing   
-- [ ] Spanning Tree Protocol (STP)  
+- [x] Spanning Tree Protocol (STP)  
 - [ ] OSPF Multi-Router Network  
 - [ ] Access Control Lists (ACLs)  
 - [ ] Network Address Translation (NAT)  
