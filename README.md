@@ -20,7 +20,7 @@ Build practical ability to:
 
 - [x] VLAN Segmentation & Inter-VLAN Routing   
 - [x] Spanning Tree Protocol (STP)  
-- [ ] OSPF Multi-Router Network  
+- [x] OSPF Multi-Router Network  
 - [ ] Access Control Lists (ACLs)  
 - [ ] Network Address Translation (NAT)  
 - [ ] Network Hardening (Port Security, DHCP Snooping, ARP Inspection)  
