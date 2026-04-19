@@ -19,10 +19,10 @@ The lab progresses through three stages:
 ## Part 1 — OSPF Neighbor Formation and Route Advertisement
 
 ### Topology
-![OSPF Topology](topologies/ospf-topology.png)
+![OSPF Topology](ospf-topology.png)
 
 ### Configuration Proof
-![OSPF Neighbors](verification/ospf-neighbors.png)
+![OSPF Neighbors](ospf-neighbors.png)
 
 - Configured hostnames and IP addressing across all routers  
 - Enabled OSPF on all internal interfaces (Area 0)  
@@ -35,12 +35,12 @@ The lab progresses through three stages:
 ## Part 2 — Path Selection and OSPF Control
 
 ### Topology
-![Path Control Topology](topologies/ospf-path-control.png)
+![Path Control Topology](ospf-path-control.png)
 
 ### Configuration Proof
-![Routing Table](verification/ospf-routing-table.png)
-![OSPF Cost](verification/ospf-cost-selection.png)
-![Default Route](verification/ospf-default-route.png)
+![Routing Table](ospf-routing-table.png)
+![OSPF Cost](ospf-cost-selection.png)
+![Default Route](ospf-default-route.png)
 
 - Verified routers learned remote networks dynamically through OSPF  
 - Observed OSPF routes appear in the routing table  
@@ -55,11 +55,11 @@ The lab progresses through three stages:
 ## Part 3 — OSPF Troubleshooting and Network Recovery
 
 ### Topology
-![Troubleshooting Topology](topologies/ospf-troubleshooting.png)
+![Troubleshooting Topology](ospf-troubleshooting.png)
 
 ### Configuration Proof
-![OSPF Issue](verification/ospf-issue.png)
-![OSPF Fixed](verification/ospf-fixed.png)
+![OSPF Issue](ospf-issue.png)
+![OSPF Fixed](ospf-fixed.png)
 
 - Diagnosed missing routes and corrected OSPF configuration issues  
 - Identified and fixed neighbor adjacency problems  
