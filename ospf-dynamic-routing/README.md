@@ -39,7 +39,6 @@ The lab progresses through three stages:
 
 ### Configuration Proof
 ![Routing Table](images/ospf-routing-table.png)
-![OSPF Cost](images/ospf-cost-selection.png)
 
 - Verified routers learned remote networks dynamically through OSPF  
 - Observed OSPF routes appear in the routing table  
