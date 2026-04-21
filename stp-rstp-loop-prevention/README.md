@@ -42,7 +42,7 @@ The lab progresses through three stages:
 
 ### Configuration Proof
 
-![STP Control Output](images/stp-control-output.png)
+![STP Control Output](images/stp-control-output1.png)
 
 - Configured root primary and secondary for different VLANs  
 - Adjusted interface cost to influence path selection  
