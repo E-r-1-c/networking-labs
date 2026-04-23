@@ -57,7 +57,7 @@ The lab progresses through three stages:
 
 ### Configuration Proof
 ![OSPF Issue](images/ospf-issue.png)
-![OSPF Fixed](images/ospf-fixed.png)
+![OSPF Fixed](images/ospf-fixed1.png)
 
 - Diagnosed missing routes and corrected OSPF configuration issues  
 - Identified and fixed neighbor adjacency problems  
