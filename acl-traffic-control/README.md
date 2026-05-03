@@ -19,7 +19,7 @@ Focus is placed on how traffic is intentionally allowed or denied, and how ACL p
 
 ## Topology
 
-![Topology](images/topology.png)
+![Topology](images/part1-topology.png)
 
 ---
 
