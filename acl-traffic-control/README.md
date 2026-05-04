@@ -104,7 +104,7 @@ Focus is placed on how traffic is intentionally allowed or denied, and how ACL p
 
 ![DNS Block](images/part2-dns-deny.png)  
 ![HTTP Block](images/part2-http-deny.png)  
-![Allowed Traffic](images/part2-allow.png)
+![Allowed Traffic](images/allow.png)
 
 ### Tests Performed
 
