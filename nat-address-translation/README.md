@@ -88,7 +88,7 @@ The same network topology is reused while progressively applying:
 
 ### Connectivity Testing
 
-![NAT Validation](images/nat-validation.png)
+![NAT Validation](images/nat-validation-ping.png)
 
 - Internal hosts successfully reach external destinations  
 - Traffic fails when translations are unavailable  
