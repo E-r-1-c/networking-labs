@@ -8,18 +8,24 @@ Designed and implemented Network Address Translation to enable private networks 
 
 This project demonstrates how NAT operates at the network boundary and how different NAT types affect connectivity, scalability, and traffic flow.
 
-The lab progresses through three stages:
+The same network topology is reused while progressively applying:
 - Static NAT (one-to-one translation)  
 - Dynamic NAT (address pool translation)  
 - Port Address Translation (PAT / NAT Overload)  
 
 ---
 
+## Base Topology
+
+![NAT Topology](images/nat-topology.png)
+
+- Internal network uses private addressing  
+- Router performs NAT at the network edge  
+- External network simulates internet connectivity  
+
+---
+
 ## Part 1 — Static NAT
-
-### Topology
-
-![Static NAT Topology](images/static-nat-topology.png)
 
 ### Configuration Proof
 
@@ -33,42 +39,34 @@ The lab progresses through three stages:
 
 - Static translations persist without active traffic  
 - Each internal host consumes a unique public IP address  
-- Static NAT does not scale for large numbers of hosts  
+- Static NAT does not scale for multiple internal systems  
 
 ---
 
 ## Part 2 — Dynamic NAT
-
-### Topology
-
-![Dynamic NAT Topology](images/dynamic-nat-topology.png)
 
 ### Configuration Proof
 
 ![Dynamic NAT Config](images/dynamic-nat-config.png)
 
 - Configured dynamic NAT using a limited public IP pool  
-- Allowed internal hosts to share addresses dynamically  
-- Observed translation allocation and release  
+- Allowed internal hosts to receive translations dynamically  
+- Observed translation allocation and exhaustion  
 
 ### Validation
 
-- First internal hosts successfully translated and reached the internet  
+- Initial internal hosts successfully reached external networks  
 - Additional hosts failed once the NAT pool was exhausted  
 
 ### Observed Behavior
 
 - NAT pool exhaustion prevents new translations  
 - Clearing translations temporarily restores connectivity  
-- Dynamic NAT improves efficiency but remains limited under load  
+- Dynamic NAT improves efficiency but remains limited  
 
 ---
 
 ## Part 3 — Port Address Translation (PAT)
-
-### Topology
-
-![PAT Topology](images/pat-topology.png)
 
 ### Configuration Proof
 
@@ -76,7 +74,7 @@ The lab progresses through three stages:
 
 - Enabled NAT overload using a single public IP address  
 - Allowed all internal hosts to share one external address  
-- Verified simultaneous connectivity from multiple hosts  
+- Verified simultaneous connectivity from multiple systems  
 
 ### Observed Behavior
 
