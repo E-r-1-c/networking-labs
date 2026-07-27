@@ -22,7 +22,7 @@ Build practical ability to:
 - [x] Spanning Tree Protocol (STP)  
 - [x] OSPF Multi-Router Network  
 - [x] Access Control Lists (ACLs)  
-- [ ] Network Address Translation (NAT)  
+- [x] Network Address Translation (NAT)  
 - [ ] Network Hardening (Port Security, DHCP Snooping, ARP Inspection)  
 - [ ] GRE Tunnel Implementation  
 - [ ] Enterprise Network Build (Integrated Lab)
