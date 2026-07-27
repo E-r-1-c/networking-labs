@@ -1,22 +1,20 @@
 # DHCP Snooping – Preventing Rogue DHCP Servers
 
-Configured Cisco DHCP Snooping to protect the network from unauthorized DHCP servers by validating DHCP messages and establishing trusted interfaces for legitimate DHCP traffic.
+Configured Cisco DHCP Snooping to protect the network from rogue DHCP servers by establishing trusted interfaces and validating DHCP messages across multiple switches.
 
 ---
 
 ## Overview
 
-This lab demonstrates how DHCP Snooping strengthens Layer 2 security by preventing rogue DHCP servers from distributing IP addresses to clients.
-
-The lab configures a router as the legitimate DHCP server, enables DHCP Snooping on multiple switches, establishes trusted uplinks, and verifies that clients successfully obtain IP addresses while unauthorized DHCP responses are blocked.
+This lab demonstrates how DHCP Snooping protects Layer 2 networks by allowing DHCP server messages only on trusted interfaces while blocking them on untrusted ports. The lab also explores how DHCP Option 82 can impact DHCP communication and how to troubleshoot the issue.
 
 Topics covered:
 
 - DHCP Server Configuration
 - DHCP Snooping
 - Trusted vs. Untrusted Interfaces
+- DHCP Option 82
 - DHCP Snooping Binding Table
-- DHCP Relay Behavior
 - Verification & Troubleshooting
 
 ---
@@ -27,115 +25,46 @@ Topics covered:
 
 ---
 
-# Part 1 — Configure the DHCP Server
-
 ## Configuration
 
-Configured R1 as the authorized DHCP server.
+Configured:
 
-### DHCP Policy
+- R1 as the DHCP server
+- DHCP Snooping on SW1 and SW2
+- Trusted uplink interfaces
+- DHCP address exclusions
+- DHCP address pool
 
-- Configured interface **G0/0** as the default gateway
-- Created a DHCP pool for **192.168.1.0/24**
-- Excluded addresses **192.168.1.1 – 192.168.1.9**
-- Assigned the default gateway to clients
+### Configuration Proof
 
----
-
-## Configuration Proof
-
-![R1 DHCP Configuration](images/r1-dhcp-config.png)
+![Configuration](images/configuration.png)
 
 Verified using:
-
-- `show running-config`
-- `show ip dhcp pool`
-- `show ip dhcp binding`
-
----
-
-# Part 2 — Configure DHCP Snooping
-
-## Configuration
-
-Configured DHCP Snooping on both switches.
-
-### Security Policy
-
-- Enabled DHCP Snooping globally
-- Enabled DHCP Snooping for VLAN 1
-- Configured uplink interfaces as trusted
-- Left all client-facing access ports untrusted
-
----
-
-## Configuration Proof
-
-![DHCP Snooping Configuration](images/dhcp-snooping-config.png)
-
-Verified using:
-
-- `show ip dhcp snooping`
-- `show running-config`
-
----
-
-# Part 3 — DHCP Client Test
-
-## Validation
-
-Renewed the DHCP lease on **PC1** using:
-
-```text
-ipconfig /renew
-```
-
-### Result
-
-The DHCP request failed.
-
-The client was unable to obtain an IP address because DHCP Snooping was dropping DHCP messages received on an untrusted interface.
-
----
-
-## Troubleshooting
-
-Identified the missing trust configuration and corrected the appropriate uplink interface.
-
-After applying the fix, renewed the DHCP lease again.
-
----
-
-## Validation
-
-Verified successful DHCP address assignment.
-
-### Result
-
-- PC1 successfully received an IP address.
-- DHCP traffic was forwarded only through trusted interfaces.
-- DHCP Snooping continued protecting all untrusted access ports.
-
----
-
-## Verification
-
-Verified operation using:
 
 - `show ip dhcp snooping`
 - `show ip dhcp snooping binding`
 
-![DHCP Snooping Verification](images/dhcp-snooping-verification.png)
+---
+
+## Validation
+
+Renewed the DHCP lease on PC1.
+
+Initially, the client was unable to obtain an IP address because DHCP Option 82 information was being inserted and the DHCP server was not accepting it. After disabling Option 82 insertion, the client successfully obtained an IP address from the authorized DHCP server.
+
+### Verification
+
+![Verification](images/verification.png)
 
 ---
 
 ## Key Takeaways
 
-- DHCP Snooping protects clients from rogue DHCP servers.
-- Only trusted interfaces are permitted to forward DHCP server messages.
-- Access ports remain untrusted by default.
-- The DHCP Snooping binding table records legitimate IP-to-MAC mappings.
-- Proper trust boundaries are required for DHCP traffic to function correctly.
+- DHCP Snooping establishes trusted and untrusted interfaces.
+- Only trusted interfaces can forward DHCP server messages.
+- DHCP Option 82 can prevent address assignment if the DHCP server does not support or expect relay information.
+- The DHCP Snooping binding table records legitimate client IP-to-MAC mappings.
+- Verification commands simplify troubleshooting DHCP-related issues.
 
 ---
 
