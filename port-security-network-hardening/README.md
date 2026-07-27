@@ -45,7 +45,7 @@ Configured Port Security on SW1 access ports.
 
 ## Configuration Proof
 
-![SW1 Configuration](images/sw1-port-security.png)
+![SW1 Configuration](images/sw1-port-security-config.png)
 
 Verified using:
 
