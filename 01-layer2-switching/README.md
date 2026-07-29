@@ -42,8 +42,6 @@ Each lab includes:
 - Device configurations
 - Verification commands
 - Connectivity testing
-- Failure scenarios
-- Troubleshooting
 - Key takeaways
 
 ---
