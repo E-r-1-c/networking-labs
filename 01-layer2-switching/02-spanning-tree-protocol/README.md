@@ -40,7 +40,7 @@ A three-switch redundant topology was built to observe root bridge election, spa
 
 ---
 
-# Configuration
+## Configuration
 
 The following tasks were completed during this lab:
 
@@ -55,7 +55,7 @@ The following tasks were completed during this lab:
 
 ---
 
-## Rapid PVST+ Configuration
+### Rapid PVST+ Configuration
 
 Rapid PVST+ was enabled on all switches:
 
@@ -67,7 +67,7 @@ Rapid PVST+ creates a separate spanning-tree instance for each VLAN and provides
 
 ---
 
-## Primary Root Bridge Configuration
+### Primary Root Bridge Configuration
 
 SW0 was configured as the preferred root bridge for VLANs 10 and 20:
 
@@ -79,7 +79,7 @@ This automatically adjusts the bridge priority so SW0 becomes the root bridge du
 
 ---
 
-## Secondary Root Bridge Configuration
+### Secondary Root Bridge Configuration
 
 SW1 was configured as the backup root bridge:
 
@@ -91,7 +91,7 @@ This provides a backup root bridge if the primary root bridge becomes unavailabl
 
 ---
 
-## Access Port Protection Configuration
+### Access Port Protection Configuration
 
 PortFast and BPDU Guard were enabled on SW2 access ports:
 
@@ -106,9 +106,9 @@ BPDU Guard protects access ports by placing the interface into an err-disabled s
 
 ---
 
-# Verification
+## Verification
 
-## Root Bridge Verification
+### Root Bridge Verification
 
 The spanning-tree output was checked on the switches to verify:
 
@@ -121,24 +121,24 @@ The spanning-tree output was checked on the switches to verify:
 Command used:
 
 ```cisco
-show spanning-tree
+show spanning-tree vlan 10
 ```
 
-![Root Bridge Verification](./images/root-bridge.png)
+![Root Bridge Verification](./images/01-primary-root-verification.png)
 
 ---
 
-## Port Role Verification
+### Port Role Verification
 
 The spanning-tree output was used to identify root, designated, and alternate ports.
 
 Command used:
 
 ```cisco
-show spanning-tree
+show spanning-tree vlan 10
 ```
 
-![Port Role Verification](./images/port-roles.png)
+![Port Role Verification](./images/02-blocking-port-verification.png)
 
 Observed behavior:
 
@@ -149,21 +149,21 @@ Observed behavior:
 
 ---
 
-## Root Bridge Information Verification
+### Root Bridge Information Verification
 
 The root bridge information was verified by reviewing the spanning-tree output.
 
 Command used:
 
 ```cisco
-show spanning-tree
+show spanning-tree root
 ```
 
 ![Spanning Tree Root Verification](./images/show-spanning-tree-root.png)
 
 ---
 
-## BPDU Guard Verification
+### BPDU Guard Verification
 
 BPDU Guard was tested on the access switch (SW2) by introducing BPDU traffic on a PortFast-enabled access port.
 
@@ -172,7 +172,7 @@ When SW2 received an unexpected BPDU on the protected interface, BPDU Guard plac
 The interface status was verified using:
 
 ```cisco
-show interfaces status
+show interfaces status err-disabled
 ```
 
 Example interface verification:
@@ -181,11 +181,11 @@ Example interface verification:
 show interfaces fa0/1
 ```
 
-![BPDU Guard Err Disable](./images/bpduguard-errdisable.png)
+![BPDU Guard Err Disable](./images/03-bpduguard-errdisable.png)
 
 ---
 
-# Expected Port Behavior
+## Expected Port Behavior
 
 | Port Role | Purpose |
 |-----------|---------|
@@ -202,7 +202,7 @@ Expected STP behavior:
 
 ---
 
-# Results
+## Results
 
 The completed topology successfully demonstrated STP loop prevention.
 
@@ -217,7 +217,7 @@ Results:
 
 ---
 
-# Key Takeaways
+## Key Takeaways
 
 - STP prevents Layer 2 loops by controlling which ports forward traffic.
 - The switch with the lowest Bridge ID becomes the root bridge.
@@ -231,7 +231,7 @@ Results:
 
 ---
 
-# Environment
+## Environment
 
 - Cisco Packet Tracer
 - Cisco IOS
