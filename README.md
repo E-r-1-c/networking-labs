@@ -1,46 +1,49 @@
 # Networking Labs
 
-Hands-on networking labs focused on how systems communicate, how traffic is controlled, and how networks are secured in real-world environments.
+A collection of hands-on networking labs covering Layer 2 switching, routing, IPv6, network services, security, and enterprise network design.
+
+Each lab focuses on understanding how networks operate, why technologies are used, and how to configure and troubleshoot them in realistic scenarios.
 
 ---
 
 ## Objective
 
-Build practical ability to:
+Develop practical experience with enterprise networking by:
 
-- Design segmented networks (VLANs, inter-VLAN routing)
-- Configure and validate dynamic routing (OSPF)
-- Enforce access control using ACLs
-- Implement NAT for internal-to-external communication
-- Apply network hardening techniques to defend against common attacks
-
----
-
-## Labs (In Progress)
-
-- [x] VLAN Segmentation & Inter-VLAN Routing   
-- [x] Spanning Tree Protocol (STP)  
-- [x] OSPF Multi-Router Network  
-- [x] Access Control Lists (ACLs)  
-- [x] Network Address Translation (NAT)  
-- [ ] Network Hardening (Port Security, DHCP Snooping, ARP Inspection)  
-- [ ] GRE Tunnel Implementation  
-- [ ] Enterprise Network Build (Integrated Lab)
+- Building and validating Layer 2 and Layer 3 networks
+- Implementing dynamic routing and network services
+- Securing networks using industry-standard technologies
+- Troubleshooting connectivity and configuration issues
+- Integrating multiple technologies into complete network designs
 
 ---
 
-## Lab Approach
+## Repository Structure
 
-Each lab focuses on:
+- [ ] Layer 2 Switching
+- [ ] Routing
+- [ ] OSPF
+- [ ] IPv6
+- [ ] Network Services
+- [ ] Network Address Translation (NAT)
+- [ ] Network Security
+- [ ] High Availability
+- [ ] Enterprise Networks
+- [ ] Troubleshooting
 
-- Building a working network scenario
-- Validating behavior and connectivity
-- Identifying misconfigurations or failures
-- Explaining why the system behaves the way it does
+---
 
-The goal is not just configuration, but:
+## Lab Methodology
 
-understanding system behavior, enforcing control, and explaining outcomes clearly
+Each lab is designed to:
+
+- Build a realistic network topology
+- Configure one or more networking technologies
+- Verify expected behavior
+- Troubleshoot common issues
+- Explain how and why the network behaves as it does
+
+The focus is not simply on configuration, but on understanding packet flow, protocol behavior, and network design.
 
 ---
 
@@ -48,7 +51,7 @@ understanding system behavior, enforcing control, and explaining outcomes clearl
 
 All labs are built and tested using:
 
-- Cisco Packet Tracer  
-- Wireshark  
-- tcpdump  
+- Cisco Packet Tracer
+- Wireshark
+- tcpdump
 - Linux-based systems
