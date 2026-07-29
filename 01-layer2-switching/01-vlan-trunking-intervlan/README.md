@@ -2,30 +2,32 @@
 
 ## Overview
 
-This lab demonstrates how VLANs segment a switched network into separate broadcast domains and how 802.1Q trunk links carry traffic for multiple VLANs between switches.
+This lab demonstrates how VLANs segment a switched network into separate Layer 2 broadcast domains and how 802.1Q trunk links carry traffic for multiple VLANs between switches.
 
-The network uses a dedicated native VLAN and restricted allowed VLAN lists to reduce unnecessary VLAN traffic across trunk links.
+Devices in the same VLAN can communicate across trunk links, while communication between different VLANs is prevented because no Layer 3 routing is configured.
 
 ---
 
 ## Objectives
 
-- Create VLANs
-- Configure access ports
+- Create and configure VLANs
+- Assign access ports to the appropriate VLANs
 - Configure 802.1Q trunk links
 - Configure a dedicated native VLAN
-- Restrict allowed VLANs
-- Verify VLAN segmentation
+- Restrict allowed VLANs on trunk links
+- Verify VLAN configuration
 - Verify trunk operation
-- Validate end-to-end connectivity
+- Validate Layer 2 connectivity
 
 ---
 
-## Network Topology
+# Network Topology
 
-![Topology](images/topology.png)
+![Network Topology](./images/topology.png)
 
-### VLAN Design
+---
+
+## VLAN Design
 
 | VLAN | Name | Purpose |
 |------|------|---------|
@@ -36,53 +38,80 @@ The network uses a dedicated native VLAN and restricted allowed VLAN lists to re
 
 ---
 
-## Configuration
+## Device Addressing
 
-Explain what you configured here.
-
----
-
-## Verification
-
-### VLAN Verification
-
-`show vlan brief`
-
-![VLAN Verification](images/show-vlan-brief.png)
+| Device | Interface | IP Address | Subnet Mask | VLAN |
+|---------|-----------|------------|-------------|------|
+| PC0 | FastEthernet0 | 192.168.10.1 | 255.255.255.0 | 10 |
+| PC1 | FastEthernet0 | 192.168.20.2 | 255.255.255.0 | 20 |
+| PC2 | FastEthernet0 | 192.168.10.3 | 255.255.255.0 | 10 |
+| PC3 | FastEthernet0 | 192.168.20.4 | 255.255.255.0 | 20 |
 
 ---
 
-### Trunk Verification
+# Configuration
 
-`show interfaces trunk`
+The following tasks were completed during this lab:
 
-![Trunk Verification](images/show-interfaces-trunk.png)
-
----
-
-### Connectivity Tests
-
-Successful communication between devices in the same VLAN.
-
-![Same VLAN](images/same-vlan-ping.png)
-
-Communication between different VLANs fails as expected because no Layer 3 routing is configured.
-
-![Different VLAN](images/different-vlan-ping.png)
+- Created VLANs 10, 20, 99, and 999
+- Assigned access ports to the appropriate VLANs
+- Configured 802.1Q trunk links between switches
+- Configured VLAN 999 as the native VLAN
+- Restricted trunk links to carry only VLANs 10, 20, 99, and 999
 
 ---
 
-## Key Takeaways
+# Verification
 
-- VLANs create separate Layer 2 broadcast domains.
-- Access ports determine VLAN membership.
-- Trunk links carry traffic for multiple VLANs between switches.
-- Native VLANs should be configured consistently across both ends of a trunk.
-- Restricting allowed VLANs limits unnecessary VLAN traffic across trunk links.
-- Devices in different VLANs cannot communicate without Layer 3 routing.
+### VLAN Configuration
+
+Verified that the VLANs were created and that access ports were assigned correctly.
+
+```text
+show vlan brief
+```
+
+![show vlan brief](./images/show-vlan-brief.png)
 
 ---
 
-## Environment
+### Trunk Configuration
+
+Verified that the trunk links were operational, using the correct native VLAN, and carrying the required VLANs.
+
+```text
+show interfaces trunk
+```
+
+![show interfaces trunk](./images/show-interfaces-trunk.png)
+
+---
+
+### Connectivity Testing
+
+Devices in the same VLAN successfully communicated across the trunk links.
+
+![Same VLAN Communication](./images/same-vlan-ping.png)
+
+Devices in different VLANs were unable to communicate because no Layer 3 routing was configured.
+
+![Different VLAN Communication](./images/different-vlan-ping.png)
+
+---
+
+# Key Takeaways
+
+- VLANs divide a switched network into separate Layer 2 broadcast domains.
+- Access ports determine which VLAN a connected device belongs to.
+- 802.1Q trunk links carry traffic for multiple VLANs between switches.
+- The native VLAN must match on both ends of a trunk.
+- Restricting allowed VLANs limits trunk traffic to only the required VLANs.
+- Communication between different VLANs requires Layer 3 routing.
+
+
+---
+
+# Environment
 
 - Cisco Packet Tracer
+- Cisco IOS
