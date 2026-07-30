@@ -4,8 +4,6 @@
 
 Configured a 3-switch redundant Layer 2 topology to observe Rapid PVST+ convergence, enforce primary/secondary root bridge placement, and secure access ports using PortFast and BPDU Guard.
 
-> **Key Goal:** Eliminate Layer 2 loops, control root bridge elections, and harden edge ports against rogue switches.
-
 ---
 
 ## Network Topology & Switch Roles
