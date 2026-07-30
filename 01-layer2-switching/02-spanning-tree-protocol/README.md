@@ -2,38 +2,61 @@
 
 ## Overview
 
-Configured a 3-switch redundant Layer 2 topology to observe Rapid PVST+ convergence, enforce primary/secondary root bridge placement, and secure access ports using PortFast and BPDU Guard.
+This lab demonstrates how Spanning Tree Protocol (STP) prevents Layer 2 switching loops in a redundant switched network.
+
+A three-switch topology with redundant links was created to observe root bridge election, spanning-tree port roles, and forwarding states. Rapid PVST+ was configured, root bridge selection was controlled through bridge priority, and BPDU Guard was enabled on access ports to provide edge protection.
 
 ---
 
-## Network Topology & Switch Roles
+## Objectives
+
+- Build a redundant Layer 2 topology
+- Configure Rapid PVST+
+- Control root bridge selection
+- Identify root, designated, and alternate ports
+- Verify forwarding and blocking states
+- Configure PortFast and BPDU Guard
+- Validate STP loop prevention
+
+---
+
+## Network Topology
 
 ![Network Topology](./images/topology.png)
 
-| Switch | Role | Configuration |
-| :--- | :--- | :--- |
-| **SW0** | Primary Root Bridge | `spanning-tree vlan 10,20 root primary` |
-| **SW1** | Secondary Root Bridge | `spanning-tree vlan 10,20 root secondary` |
-| **SW2** | Access Switch | Default Priority + PortFast / BPDU Guard |
+---
+
+## Switch Roles
+
+| Switch | Role |
+|--------|------|
+| SW0 | Primary Root Bridge |
+| SW1 | Secondary Root Bridge |
+| SW2 | Access Switch |
 
 ---
 
-## Configuration & Verification
+## Configuration
 
-### 1. Rapid PVST+ & Root Tuning
-Configured SW0 as the primary root bridge and SW1 as the secondary backup root bridge for VLANs 10 and 20.
+The topology was built with redundant Layer 2 connections between three switches to demonstrate STP path selection.
 
-```cisco
-! SW0 - Primary Root Bridge
-spanning-tree mode rapid-pvst
-spanning-tree vlan 10,20 root primary
+Rapid PVST+ was enabled to provide per-VLAN spanning-tree operation.
 
-! SW1 - Secondary Root Bridge
-spanning-tree mode rapid-pvst
-spanning-tree vlan 10,20 root secondary
-```
+Root bridge priorities were adjusted so:
 
-**Verification:** Confirmed SW0 won the election and all active interfaces transitioned to **Designated Forwarding (`FWD`)** ports.
+- SW0 became the preferred root bridge for VLANs 10 and 20
+- SW1 provided secondary root bridge functionality
+- SW2 operated as an access switch with edge-port protection enabled
+
+PortFast and BPDU Guard were configured on SW2 access ports to protect end-device connections.
+
+---
+
+## Verification
+
+### Root Bridge Verification
+
+Verified the elected root bridge, bridge priority, and spanning-tree information.
 
 ```cisco
 show spanning-tree vlan 10
@@ -43,8 +66,9 @@ show spanning-tree vlan 10
 
 ---
 
-### 2. Loop Prevention & Port Roles
-Verified that non-root switches selected an optimal path to SW0 while placing redundant links into a non-forwarding state.
+### Port Role Verification
+
+Verified spanning-tree port roles and states.
 
 ```cisco
 show spanning-tree vlan 10
@@ -52,57 +76,59 @@ show spanning-tree vlan 10
 
 ![Port Role Verification](./images/02-blocking-port-verification.png)
 
-* **SW0:** All active ports operate as **Designated (`FWD`)**.
-* **SW1 / SW2:** Selected `Fa0/1` as their **Root Port (`FWD`)**.
-* **SW2:** Placed redundant link `Fa0/2` into **Alternate Discarding (`BLK`)** to break the switching loop.
+The output confirmed:
 
-```cisco
-show spanning-tree root
-```
-
-![Spanning Tree Root Verification](./images/show-spanning-tree-root.png)
+- SW0 was elected as the root bridge.
+- Non-root switches selected root ports toward SW0.
+- Redundant paths were placed into an alternate/discarding state.
 
 ---
 
-### 3. Edge Security (PortFast & BPDU Guard)
-Enabled PortFast on SW2 access ports for immediate end-device connectivity, paired with BPDU Guard to shut down ports if an unauthorized switch is connected.
+### BPDU Guard Verification
+
+BPDU Guard was tested on SW2 by introducing BPDU traffic on a protected access port.
+
+The interface entered an err-disabled state, preventing an unauthorized switch from affecting the spanning-tree topology.
+
+Verification:
 
 ```cisco
-! SW2 - Access Switch Protection
-spanning-tree mode rapid-pvst
-spanning-tree portfast default
-spanning-tree portfast bpduguard default
+show interfaces status
 ```
 
-**Verification:** Injected BPDU traffic into an access port. BPDU Guard immediately placed the interface into an `err-disabled` state to protect the topology.
+Interface details:
 
 ```cisco
-show interfaces status err-disabled
+show interfaces fa0/1
 ```
 
-![BPDU Guard Err Disable](./images/03-bpduguard-errdisable.png)
+![BPDU Guard Verification](./images/03-bpduguard-errdisable.png)
 
 ---
 
-## Quick Reference: Port Roles & States
+## STP Port Roles
 
-| Port Role | State | Function |
-| :--- | :--- | :--- |
-| **Root Port** | Forwarding (`FWD`) | Best path from a non-root switch back to the root bridge. |
-| **Designated Port** | Forwarding (`FWD`) | Active forwarding port assigned to a network segment. |
-| **Alternate Port** | Discarding (`BLK`) | Standby path blocked to prevent Layer 2 loops. |
+| Port Role | Purpose |
+|-----------|---------|
+| Root Port | Best path from a non-root switch toward the root bridge |
+| Designated Port | Forwarding port responsible for a Layer 2 segment |
+| Alternate Port | Backup path placed into a discarding state |
 
 ---
 
 ## Key Takeaways
 
-* **Deterministic Elections:** Manually defining bridge priorities prevents random access switches from becoming the root bridge.
-* **Fast Convergence:** Rapid PVST+ reduces convergence times compared to legacy 802.1D STP by using explicit handshakes instead of fixed timers.
-* **Proactive Security:** Combining PortFast with BPDU Guard protects access ports from rogue switches attempting to manipulate the spanning-tree topology.
+- STP prevents Layer 2 loops by controlling which paths are allowed to forward traffic.
+- Root bridge selection can be influenced using bridge priority.
+- Root ports provide the best path toward the root bridge.
+- Designated ports forward traffic for Layer 2 segments.
+- Alternate ports maintain redundancy while preventing loops.
+- Rapid PVST+ provides faster convergence through per-VLAN spanning-tree operation.
+- PortFast and BPDU Guard improve access-layer protection.
 
 ---
 
 ## Environment
 
-* **Simulation Tool:** Cisco Packet Tracer
-* **Operating System:** Cisco IOS
+- Cisco Packet Tracer
+- Cisco IOS
