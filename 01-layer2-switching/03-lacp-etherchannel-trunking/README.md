@@ -25,8 +25,8 @@ Two physical FastEthernet links were bundled into a Port-Channel using LACP. The
 
 | Switch | Role | Interfaces | Logical Interface | LACP Mode |
 |--------|------|------------|-------------------|-----------|
-| SW1 | Distribution Switch | Fa0/23 - Fa0/24 | Port-Channel1 | Active |
-| SW2 | Access Switch | Fa0/23 - Fa0/24 | Port-Channel1 | Active |
+| SW1 | Distribution Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
+| SW2 | Access Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
 
 ---
 
@@ -36,14 +36,14 @@ The topology was configured with two physical links between SW1 and SW2.
 
 LACP was used to negotiate the EtherChannel bundle, creating a single logical interface:
 
-- Physical interfaces Fa0/23 and Fa0/24 were added to Channel Group 1.
+- Physical interfaces Fa0/1 and Fa0/2 were added to Channel Group 1.
 - Port-Channel1 was configured as an 802.1Q trunk.
 - VLANs 10 and 20 were allowed across the trunk.
 
 Configuration applied:
 
 ```cisco
-interface range FastEthernet0/23 - 24
+interface range FastEthernet0/1 - 2
  channel-group 1 mode active
 
 interface Port-Channel1
@@ -53,9 +53,9 @@ interface Port-Channel1
 
 ---
 
-# Verification
+## Verification
 
-## EtherChannel Verification
+### EtherChannel Verification
 
 Verified that the physical interfaces successfully formed an LACP EtherChannel.
 
@@ -71,12 +71,12 @@ The output confirmed:
 
 - Port-Channel1 was operational.
 - LACP was being used.
-- Fa0/23 and Fa0/24 were successfully bundled into the EtherChannel.
+- Fa0/1 and Fa0/2 were successfully bundled into the EtherChannel.
 - Member ports displayed the `P` flag, confirming they were active members of the Port-Channel.
 
 ---
 
-## Trunk Verification
+### Trunk Verification
 
 Verified that the Port-Channel interface was operating as an 802.1Q trunk and carrying the required VLANs.
 
@@ -96,7 +96,7 @@ The output confirmed:
 
 ---
 
-## STP EtherChannel Verification
+### STP EtherChannel Verification
 
 Verified that Rapid PVST+ recognized the EtherChannel as a single logical connection.
 
@@ -127,7 +127,7 @@ The output confirmed:
 
 ---
 
-# Key Takeaways
+## Key Takeaways
 
 - EtherChannel combines multiple physical links into one logical interface.
 - LACP provides dynamic negotiation and link aggregation between switches.
@@ -137,7 +137,7 @@ The output confirmed:
 
 ---
 
-# Environment
+## Environment
 
 - Cisco Packet Tracer
 - Cisco IOS
