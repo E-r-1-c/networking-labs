@@ -25,8 +25,8 @@ Two physical FastEthernet links were bundled into a Port-Channel using LACP. The
 
 | Switch | Role | Interfaces | Logical Interface | LACP Mode |
 |--------|------|------------|-------------------|-----------|
-| SW1 | Distribution Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
-| SW2 | Access Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
+| SW0 | Distribution Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
+| SW1 | Access Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
 
 ---
 
