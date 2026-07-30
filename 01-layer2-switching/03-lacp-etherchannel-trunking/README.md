@@ -32,7 +32,7 @@ Two physical FastEthernet links were bundled into a Port-Channel using LACP. The
 
 ## Configuration
 
-The topology was configured with two physical links between SW1 and SW2.
+The topology was configured with two physical links between SW0 and SW1.
 
 LACP was used to negotiate the EtherChannel bundle, creating a single logical interface:
 
