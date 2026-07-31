@@ -8,9 +8,9 @@ This lab demonstrates Layer 2 security hardening on a Cisco IOS switch. Port Sec
 
 ## Topology
 
-- **SW1**: Central Layer 2 switch
-- **R1**: Legitimate DHCP server connected to `Gi0/1`
-- **PC-User**: Authorized host connected to `Fa0/2`
+- **SW0**: Central Layer 2 switch
+- **R0**: Legitimate DHCP server connected to `Gi0/1`
+- **PC0**: Authorized host connected to `Fa0/2`
 - **Rogue-DHCP**: Rogue DHCP server connected to `Fa0/3`
 
 ![Network Topology](./images/topology.png)
@@ -88,7 +88,7 @@ Port Security was verified on `Fa0/2`.
 show port-security interface FastEthernet0/2
 ```
 
-![Port Security Verification](./images/port-security.png)
+![Port Security Verification](./images/01-port-security.png)
 
 The output confirmed:
 
@@ -120,13 +120,13 @@ DHCP Snooping was verified with:
 show ip dhcp snooping
 ```
 
-![DHCP Snooping Verification](./images/dhcp-snooping.png)
+![DHCP Snooping Verification](./images/04-dhcp-snooping.png)
 
 The output confirmed:
 
 - DHCP Snooping was enabled globally
 - DHCP Snooping was active for VLAN 10
-- `Gi0/1` was configured as trusted
+- `Fa0/1` was configured as trusted
 - Access ports remained untrusted
 
 ---
@@ -139,7 +139,7 @@ The DHCP Snooping binding table was verified with:
 show ip dhcp snooping binding
 ```
 
-![DHCP Snooping Binding](./images/dhcp-binding.png)
+![DHCP Snooping Binding](./images/05-dhcp-binding.png)
 
 The output showed the legitimate client binding, including:
 
@@ -157,7 +157,7 @@ The rogue DHCP server was connected to `Fa0/3`, which remained an untrusted inte
 
 Packet Tracer simulation mode was used to observe the DHCP traffic.
 
-![Rogue DHCP Drop](./images/rogue-dhcp-drop.png)
+![Rogue DHCP Drop](./images/06-rogue-dhcp-drop.png)
 
 The test confirmed:
 
