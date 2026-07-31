@@ -9,7 +9,7 @@ This lab demonstrates Layer 2 security hardening on a Cisco IOS switch. Port Sec
 ## Topology
 
 - **SW0**: Central Layer 2 switch
-- **R0**: Legitimate DHCP server connected to `Gi0/1`
+- **R0**: Legitimate DHCP server connected to `Fa0/1`
 - **PC0**: Authorized host connected to `Fa0/2`
 - **Rogue-DHCP**: Rogue DHCP server connected to `Fa0/3`
 
