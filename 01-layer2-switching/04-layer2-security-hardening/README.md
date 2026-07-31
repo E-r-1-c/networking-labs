@@ -104,7 +104,7 @@ The output confirmed:
 
 An unauthorized device was introduced on the protected port after the authorized MAC address had already been learned.
 
-![Port Security Violation](./images/port-security-violation.png)
+![Port Security Violation](./images/02-port-security-violation.png)
 
 The switch detected the unauthorized MAC address and placed `Fa0/2` into an err-disabled state.
 
