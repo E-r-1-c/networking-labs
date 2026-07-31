@@ -6,15 +6,15 @@ Hands-on Cisco switching labs covering VLANs, trunking, Inter-VLAN routing, redu
 
 ## Focus Areas
 * VLAN segmentation and 802.1Q trunking
-* Inter-VLAN Routing (ROAS & SVIs)
-* Native VLAN security & trunk pruning
+* Native VLAN configuration and allowed VLAN lists
+* Inter-VLAN routing via Router-on-a-Stick (ROAS) and Switch Virtual Interfaces (SVIs)
 * Spanning Tree Protocol (STP) and Rapid Spanning Tree Protocol (RSTP)
-* Root bridge election, priority tuning, and path control
-* EtherChannel link aggregation (LACP & PaGP)
+* Root bridge selection and path control
+* EtherChannel link aggregation (LACP)
 * Port Security and sticky MAC learning
-* DHCP Snooping & Dynamic ARP Inspection (DAI)
-* PortFast and BPDU Guard
-* Layer 2 troubleshooting & failure recovery
+* DHCP Snooping and Option 82 untrusted port behavior
+* Dynamic ARP Inspection (DAI) and ARP spoofing mitigation
+* Layer 2 troubleshooting and link failure recovery
 
 ---
 
@@ -22,24 +22,26 @@ Hands-on Cisco switching labs covering VLANs, trunking, Inter-VLAN routing, redu
 
 | Lab | Description |
 | :--- | :--- |
-| **01 — VLANs & Trunking** | Configure VLANs, access ports, 802.1Q trunks, native VLAN security, and allowed VLAN lists. |
+| **01 — VLANs & Trunking** | Configure VLANs, access ports, 802.1Q trunks, native VLANs, and allowed VLANs. |
 | **02 — Inter-VLAN Routing** | Implement Inter-VLAN routing using Router-on-a-Stick (ROAS) subinterfaces and Layer 3 Switch Virtual Interfaces (SVIs). |
-| **03 — STP & RSTP** | Prevent Layer 2 loops, enforce root bridge placement via priority tuning, and verify RSTP convergence. |
-| **04 — EtherChannel** | Configure and validate LACP EtherChannels across multi-switch topologies for bandwidth aggregation and link redundancy. |
-| **05 — Layer 2 Security** | Secure access ports using Port Security, DHCP Snooping, Dynamic ARP Inspection (DAI), PortFast, and BPDU Guard. |
-| **06 — Layer 2 Troubleshooting** | Diagnose and resolve common VLAN mismatches, trunk failures, STP root misconfigurations, and port violations. |
+| **03 — STP & RSTP** | Prevent Layer 2 loops, control root bridge placement, and verify convergence after failures. |
+| **04 — EtherChannel** | Configure and validate LACP EtherChannels for redundancy and increased bandwidth. |
+| **05 — Port Security & DHCP Snooping** | Secure access switch ports using Port Security and mitigate rogue DHCP servers with DHCP Snooping. |
+| **06 — Dynamic ARP Inspection (DAI)** | Prevent ARP poisoning and man-in-the-middle attacks using DAI and trusted switch interfaces. |
+| **07 — Layer 2 Troubleshooting** | Diagnose and resolve common VLAN, trunk, STP, EtherChannel, and Layer 2 security issues. |
 
 ---
 
 ## Lab Structure
-Each lab folder contains:
-* **Project Overview:** Real-world design context and technical scope.
-* **Network Topology:** Device naming, interface mapping, and IP addressing schemes.
-* **Device Configurations:** Clean, production-ready Cisco IOS syntax.
-* **Verification Commands:** CLI output demonstrating operational state and features.
-* **Key Takeaways:** Engineering insights and protocol nuances observed during testing.
+Each lab includes:
+* Project overview
+* Network topology
+* Device configurations
+* Verification commands
+* Connectivity testing
+* Key takeaways
 
 ---
 
 ## Environment
-* **Platform:** Cisco Packet Tracer / Real Hardware Lab
+* Cisco Packet Tracer
