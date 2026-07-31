@@ -161,7 +161,7 @@ Packet Tracer simulation mode was used to observe the DHCP traffic.
 
 The test confirmed:
 
-- The legitimate DHCP response entering through trusted interface `Gi0/1` was allowed
+- The legitimate DHCP response entering through trusted interface `Fa0/1` was allowed
 - The rogue DHCP response entering through untrusted interface `Fa0/3` was dropped
 - The authorized client received its network configuration from the legitimate DHCP server
 
