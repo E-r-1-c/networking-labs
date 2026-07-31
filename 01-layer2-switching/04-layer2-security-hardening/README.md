@@ -1,71 +1,187 @@
-# Layer 2 Security Hardening: Port Security & DHCP Snooping
+# Layer 2 Hardening: Port Security & DHCP Snooping
 
 ## Overview
 
-This lab demonstrates how Layer 2 security features protect an access switch from unauthorized devices and rogue DHCP servers.
-
-Port Security was configured to restrict access to authorized devices by limiting MAC addresses on access ports. DHCP Snooping was implemented to allow DHCP services only from trusted interfaces while blocking unauthorized DHCP server responses from untrusted ports.
-
-A rogue DHCP server was introduced on the same VLAN as legitimate clients to simulate a real-world access-layer attack scenario.
+This lab demonstrates Layer 2 security hardening on a Cisco IOS switch. Port Security was used to restrict unauthorized devices on an access port, while DHCP Snooping was used to block DHCP responses from a rogue DHCP server.
 
 ---
 
-## Objectives
+## Topology
 
-- Configure Port Security on access ports
-- Enable sticky MAC address learning
-- Configure Port Security violation handling
-- Enable DHCP Snooping
-- Define trusted and untrusted switch interfaces
-- Verify DHCP Snooping bindings
-- Test protection against rogue DHCP servers
-- Validate access-layer security controls
-
----
-
-## Network Topology
+- **SW1**: Central Layer 2 switch
+- **R1**: Legitimate DHCP server connected to `Gi0/1`
+- **PC-User**: Authorized host connected to `Fa0/2`
+- **Rogue-DHCP**: Rogue DHCP server connected to `Fa0/3`
 
 ![Network Topology](./images/topology.png)
 
 ---
 
-## Device Roles
+## Objectives
 
-| Device | Role | Interface | Description |
-|--------|------|-----------|-------------|
-| R1 | Legitimate DHCP Server | Gi0/1 | Trusted DHCP source |
-| SW1 | Access Switch | Multiple | Layer 2 security controls configured |
-| PC-User | Authorized Client | Fa0/2 | Protected access port |
-| Rogue-DHCP | Unauthorized DHCP Server | Fa0/3 | Used to test DHCP Snooping |
-
----
-
-## Configuration
-
-The access switch was hardened using Port Security and DHCP Snooping.
-
-The following configurations were implemented:
-
-- Created the user VLAN for client communication.
-- Connected the legitimate DHCP server to a trusted switch interface.
-- Enabled Port Security on the authorized client port.
-- Limited the client port to a single MAC address.
-- Enabled sticky MAC learning.
-- Configured violation handling for unauthorized devices.
-- Enabled DHCP Snooping globally.
-- Enabled DHCP Snooping for the user VLAN.
-- Configured the DHCP server-facing interface as trusted.
-- Maintained client-facing interfaces as untrusted.
+- Configure Port Security on the authorized user port
+- Limit the port to one MAC address
+- Enable sticky MAC address learning
+- Configure shutdown violation mode
+- Enable DHCP Snooping globally
+- Enable DHCP Snooping for VLAN 10
+- Trust the legitimate DHCP server interface
+- Block rogue DHCP responses on untrusted ports
+- Verify Port Security and DHCP Snooping operation
 
 ---
 
-# Verification
+## Configuration Commands
 
-## Port Security Verification
+### Port Security Configuration
 
-Port Security status was verified on the authorized client interface.
-
-Command used:
+Port Security was configured on `Fa0/2`, which connects to the authorized user.
 
 ```cisco
-show port-security interface fa0/2
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 10
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation shutdown
+ switchport port-security mac-address sticky
+ exit
+```
+
+This configuration limits the port to one MAC address. The connected device is automatically learned as a sticky secure MAC address.
+
+If another MAC address is detected, the interface is placed into an err-disabled state.
+
+---
+
+### DHCP Snooping Configuration
+
+DHCP Snooping was enabled globally and applied to VLAN 10.
+
+```cisco
+ip dhcp snooping
+ip dhcp snooping vlan 10
+no ip dhcp snooping information option
+```
+
+Option 82 insertion was disabled because it caused DHCP issues in Packet Tracer.
+
+The interface connected to the legitimate DHCP server was configured as trusted.
+
+```cisco
+interface GigabitEthernet0/1
+ ip dhcp snooping trust
+ exit
+```
+
+The access ports connected to the authorized user and rogue DHCP server remained untrusted by default.
+
+---
+
+## Verification
+
+### Port Security Verification
+
+Port Security was verified on `Fa0/2`.
+
+```cisco
+show port-security interface FastEthernet0/2
+```
+
+![Port Security Verification](./images/port-security.png)
+
+The output confirmed:
+
+- Port Security was enabled
+- The maximum MAC address count was set to one
+- Sticky MAC learning was active
+- Shutdown violation mode was configured
+- The authorized MAC address was learned
+
+---
+
+### Port Security Violation Test
+
+An unauthorized device was introduced on the protected port after the authorized MAC address had already been learned.
+
+![Port Security Violation](./images/port-security-violation.png)
+
+The switch detected the unauthorized MAC address and placed `Fa0/2` into an err-disabled state.
+
+This confirmed that unauthorized devices could not access the network through the protected port.
+
+---
+
+### DHCP Snooping Verification
+
+DHCP Snooping was verified with:
+
+```cisco
+show ip dhcp snooping
+```
+
+![DHCP Snooping Verification](./images/dhcp-snooping.png)
+
+The output confirmed:
+
+- DHCP Snooping was enabled globally
+- DHCP Snooping was active for VLAN 10
+- `Gi0/1` was configured as trusted
+- Access ports remained untrusted
+
+---
+
+### DHCP Snooping Binding Verification
+
+The DHCP Snooping binding table was verified with:
+
+```cisco
+show ip dhcp snooping binding
+```
+
+![DHCP Snooping Binding](./images/dhcp-binding.png)
+
+The output showed the legitimate client binding, including:
+
+- MAC address
+- Assigned IP address
+- Lease time
+- VLAN
+- Switch interface
+
+---
+
+### Rogue DHCP Server Test
+
+The rogue DHCP server was connected to `Fa0/3`, which remained an untrusted interface.
+
+Packet Tracer simulation mode was used to observe the DHCP traffic.
+
+![Rogue DHCP Drop](./images/rogue-dhcp-drop.png)
+
+The test confirmed:
+
+- The legitimate DHCP response entering through trusted interface `Gi0/1` was allowed
+- The rogue DHCP response entering through untrusted interface `Fa0/3` was dropped
+- The authorized client received its network configuration from the legitimate DHCP server
+
+---
+
+## Key Takeaways
+
+- Port Security limits which devices can use an access port
+- Sticky learning automatically records the authorized MAC address
+- Shutdown violation mode places the port into an err-disabled state
+- DHCP Snooping must be enabled globally and for the required VLAN
+- The legitimate DHCP server interface must be configured as trusted
+- Access ports remain untrusted by default
+- Rogue DHCP responses received on untrusted ports are dropped
+- DHCP Snooping does not shut down the rogue DHCP port
+- The DHCP Snooping binding table records legitimate DHCP assignments
+
+---
+
+## Environment
+
+- Cisco Packet Tracer
+- Cisco IOS
