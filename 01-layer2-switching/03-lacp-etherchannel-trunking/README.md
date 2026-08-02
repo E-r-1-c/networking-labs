@@ -4,43 +4,35 @@
 
 This lab demonstrates how Link Aggregation Control Protocol (LACP) combines multiple physical switch links into a single logical EtherChannel interface.
 
-Two physical FastEthernet links were bundled into a Port-Channel using LACP. The logical Port-Channel interface was configured as an 802.1Q trunk to carry multiple VLANs between switches while allowing Rapid PVST+ to treat the EtherChannel as a single logical path.
+Two FastEthernet links were bundled into Port-Channel1 using LACP. The Port-Channel was configured as an 802.1Q trunk carrying VLANs 10 and 20, while Rapid PVST+ treated the EtherChannel as a single logical path.
 
 ---
 
 ## Objectives
 
-- Configure LACP EtherChannel between switches
+- Configure an LACP EtherChannel between switches
 - Bundle multiple physical interfaces into a logical Port-Channel
-- Configure 802.1Q trunking on an EtherChannel interface
+- Configure 802.1Q trunking on the Port-Channel
 - Verify EtherChannel negotiation and operation
-- Verify VLAN traffic across the trunk
+- Verify trunk operation and allowed VLANs
 - Verify STP interaction with EtherChannel
 
 ---
 
-## Network Topology & Switch Roles
+## Topology
 
 ![Network Topology](./images/topology.png)
 
-| Switch | Role | Interfaces | Logical Interface | LACP Mode |
-|--------|------|------------|-------------------|-----------|
-| SW0 | Distribution Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
-| SW1 | Access Switch | Fa0/1 - Fa0/2 | Port-Channel1 | Active |
+| Switch | Role | Physical Interfaces | Logical Interface | LACP Mode |
+|---|---|---|---|---|
+| SW0 | Distribution switch | Fa0/1–Fa0/2 | Port-Channel1 | Active |
+| SW1 | Access switch | Fa0/1–Fa0/2 | Port-Channel1 | Active |
 
 ---
 
 ## Configuration
 
-The topology was configured with two physical links between SW0 and SW1.
-
-LACP was used to negotiate the EtherChannel bundle, creating a single logical interface:
-
-- Physical interfaces Fa0/1 and Fa0/2 were added to Channel Group 1.
-- Port-Channel1 was configured as an 802.1Q trunk.
-- VLANs 10 and 20 were allowed across the trunk.
-
-Configuration applied:
+Fa0/1 and Fa0/2 were bundled into Port-Channel1 using LACP, and the Port-Channel was configured as a trunk carrying VLANs 10 and 20.
 
 ```cisco
 interface range FastEthernet0/1 - 2
@@ -57,9 +49,7 @@ interface Port-Channel1
 
 ### EtherChannel Verification
 
-Verified that the physical interfaces successfully formed an LACP EtherChannel.
-
-Command used:
+The EtherChannel bundle was verified with:
 
 ```cisco
 show etherchannel summary
@@ -69,18 +59,16 @@ show etherchannel summary
 
 The output confirmed:
 
-- Port-Channel1 was operational.
-- LACP was being used.
-- Fa0/1 and Fa0/2 were successfully bundled into the EtherChannel.
-- Member ports displayed the `P` flag, confirming they were active members of the Port-Channel.
+- Port-Channel1 was operational
+- LACP was being used
+- Fa0/1 and Fa0/2 were bundled successfully
+- Both member interfaces displayed the `P` flag
 
 ---
 
 ### Trunk Verification
 
-Verified that the Port-Channel interface was operating as an 802.1Q trunk and carrying the required VLANs.
-
-Command used:
+The Port-Channel trunk was verified with:
 
 ```cisco
 show interfaces trunk
@@ -90,17 +78,15 @@ show interfaces trunk
 
 The output confirmed:
 
-- Port-Channel1 was functioning as a trunk.
-- VLANs 10 and 20 were allowed across the trunk.
-- The logical interface was carrying multi-VLAN traffic.
+- Port-Channel1 was operating as a trunk
+- VLANs 10 and 20 were allowed across the trunk
+- Multi-VLAN traffic was carried over the logical interface
 
 ---
 
 ### STP EtherChannel Verification
 
-Verified that Rapid PVST+ recognized the EtherChannel as a single logical connection.
-
-Command used:
+STP operation was verified with:
 
 ```cisco
 show spanning-tree vlan 10
@@ -110,30 +96,31 @@ show spanning-tree vlan 10
 
 The output confirmed:
 
-- STP calculated the topology using Port-Channel1 instead of individual physical links.
-- The EtherChannel operated as a single spanning-tree path.
-- Redundant physical links were combined without creating a Layer 2 loop.
+- Rapid PVST+ calculated the topology using Port-Channel1
+- STP treated the EtherChannel as a single logical path
+- STP did not calculate separate paths for each physical member interface
 
 ---
 
 ## LACP Modes & Flags
 
 | Mode / Flag | Description |
-|-------------|-------------|
-| Active | Initiates LACP negotiation with the neighboring switch |
-| Passive | Responds to LACP negotiation but does not initiate |
-| SU Flag | Layer 2 EtherChannel that is currently in use |
-| P Flag | Physical interface successfully bundled into the Port-Channel |
+|---|---|
+| Active | Initiates LACP negotiation |
+| Passive | Responds to LACP negotiation |
+| S | Port-Channel operates as a Layer 2 interface |
+| U | Port-Channel is currently in use |
+| P | Physical interface is bundled in the Port-Channel |
 
 ---
 
 ## Key Takeaways
 
-- EtherChannel combines multiple physical links into one logical interface.
-- LACP provides dynamic negotiation and link aggregation between switches.
-- Trunk configurations should be applied to the Port-Channel interface instead of individual member interfaces.
-- STP treats an EtherChannel as a single logical link, preventing individual member links from being blocked.
-- EtherChannel provides additional bandwidth and redundancy while maintaining a loop-free topology.
+- EtherChannel combines multiple physical links into one logical interface
+- LACP dynamically negotiates the EtherChannel between switches
+- Trunk configuration is applied to the Port-Channel interface
+- STP treats the Port-Channel as one logical path
+- EtherChannel provides additional bandwidth and link redundancy
 
 ---
 
