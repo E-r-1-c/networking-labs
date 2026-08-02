@@ -34,7 +34,7 @@ Rapid PVST+ was configured across a three-switch topology. Root bridge selection
 
 ## Configuration
 
-Rapid PVST+ was enabled on all switches.
+Rapid PVST+ was enabled across the switched topology.
 
 ```cisco
 spanning-tree mode rapid-pvst
@@ -54,13 +54,15 @@ spanning-tree vlan 10,20 root secondary
 
 PortFast and BPDU Guard were enabled on the SW2 access ports connected to end devices.
 
-This allowed the access ports to transition quickly to forwarding while shutting down a protected port if unexpected BPDU traffic was received.
+PortFast allowed the access ports to transition directly to forwarding, while BPDU Guard protected the topology by disabling a protected port if unexpected BPDU traffic was received.
 
 ---
 
 ## Verification
 
-### Root Bridge and Port Roles
+### Root Bridge Verification
+
+The spanning-tree state was verified on SW0.
 
 ```cisco
 show spanning-tree
@@ -68,15 +70,26 @@ show spanning-tree
 
 ![Root Bridge Verification](./images/01-primary-root-verification.png)
 
+The output confirmed that SW0 was elected as the root bridge for the configured VLANs.
+
+---
+
+### Port Role Verification
+
+The spanning-tree port roles and states were verified on SW2.
+
+```cisco
+show spanning-tree
+```
+
 ![Port Role Verification](./images/02-blocking-port-verification.png)
 
-The output confirmed:
+The output confirmed that:
 
-- SW0 was elected as the root bridge
-- Non-root switches selected root ports toward SW0
-- Designated ports forwarded traffic for their segments
-- A redundant path was placed into an alternate discarding state
-- The topology remained loop-free while retaining redundancy
+- SW2 selected its root port toward SW0
+- Designated ports remained in the forwarding state
+- The redundant path was placed into an alternate discarding state
+- The topology remained loop-free while maintaining redundancy
 
 ---
 
