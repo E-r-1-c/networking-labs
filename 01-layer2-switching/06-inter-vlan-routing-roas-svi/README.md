@@ -7,7 +7,7 @@ This lab compares two methods of routing traffic between VLANs:
 - **Router-on-a-Stick (ROAS)** using router subinterfaces
 - **Switch Virtual Interfaces (SVIs)** on a multilayer switch
 
-Two disconnected networks were built in the same Packet Tracer file. Both use the same VLANs and IP addressing so each routing method can be configured and tested independently.
+Two disconnected networks were built in the same Packet Tracer file. Both use the same VLANs and addressing plan so each method can be configured and tested independently.
 
 ---
 
@@ -18,7 +18,7 @@ Two disconnected networks were built in the same Packet Tracer file. Both use th
 - Configure inter-VLAN routing using SVIs on a multilayer switch
 - Verify Layer 3 interfaces and directly connected routes
 - Test communication between VLAN 10 and VLAN 20
-- Compare external router-based routing with multilayer-switch routing
+- Compare router-based and multilayer-switch routing
 
 ---
 
@@ -51,7 +51,9 @@ The two networks are not connected and were tested separately.
 | 20 | Engineering | `192.168.20.0/24` | `192.168.20.1` |
 | 999 | Native | N/A | N/A |
 
-PC0 and PC2 use `192.168.10.10/24`, while PC1 and PC3 use `192.168.20.10/24`. The duplicate addresses are valid because the two networks are disconnected.
+PC0 and PC2 use `192.168.10.10/24`, while PC1 and PC3 use `192.168.20.10/24`.
+
+The duplicate addresses are valid because the two networks are disconnected.
 
 ---
 
@@ -134,64 +136,118 @@ interface vlan 20
 ip routing
 ```
 
-The SVIs provide the VLAN gateways, while `ip routing` allows MLS0 to forward traffic between the two networks.
+The SVIs provide the VLAN gateways, while `ip routing` allows MLS0 to forward traffic between the two VLAN networks.
 
 ---
 
 ## Verification
 
-### Router-on-a-Stick Verification
+### ROAS Trunk Verification
 
-The trunk was verified on SW0, while the subinterfaces and routing table were verified on R0.
+The trunk between SW0 and R0 was verified on SW0.
 
 ```cisco
 show interfaces trunk
-show ip interface brief
-show ip route
 ```
 
-![ROAS Verification](./images/roas-verification.png)
+![ROAS Trunk Verification](./images/01-roas-trunk.png)
 
 The output confirmed:
 
-- The switch-to-router link was operating as a trunk
+- `Fa0/1` was operating as an 802.1Q trunk
 - VLAN 999 was configured as the native VLAN
-- The router subinterfaces were operational
-- VLAN 10 and VLAN 20 appeared as directly connected networks
+- VLANs 10, 20, and 999 were allowed and active
+- The required VLANs were in the spanning-tree forwarding state
 
 ---
 
-### SVI Verification
+### Router Subinterface Verification
 
-The VLAN interfaces and routing table were verified on MLS0.
+The router subinterfaces were verified on R0.
 
 ```cisco
 show ip interface brief
-show ip route
 ```
 
-![SVI Verification](./images/svi-verification.png)
+![ROAS Subinterface Verification](./images/02-roas-subinterfaces.png)
 
-The output confirmed:
-
-- The VLAN 10 and VLAN 20 SVIs were operational
-- Each SVI used the correct gateway address
-- Both VLAN networks appeared as directly connected routes
+The output confirmed that the VLAN 10 and VLAN 20 subinterfaces were operational and using the correct gateway addresses.
 
 ---
 
-### Connectivity Testing
+### ROAS Routing Table Verification
 
-Cross-VLAN connectivity was tested independently in both networks.
+The routing table was verified on R0.
+
+```cisco
+show ip route
+```
+
+![ROAS Routing Table Verification](./images/03-roas-routing-table.png)
+
+The output confirmed that the following networks appeared as directly connected routes:
+
+- `192.168.10.0/24`
+- `192.168.20.0/24`
+
+---
+
+### ROAS Connectivity Testing
+
+PC0 tested connectivity to PC1 across the VLAN boundary.
 
 ```text
 PC0> ping 192.168.20.10
+```
+
+![ROAS Connectivity Verification](./images/04-roas-connectivity.png)
+
+The successful ping confirmed that R0 routed traffic between VLAN 10 and VLAN 20 through its subinterfaces.
+
+---
+
+### SVI Interface Verification
+
+The VLAN interfaces were verified on MLS0.
+
+```cisco
+show ip interface brief
+```
+
+![SVI Interface Verification](./images/05-svi-interfaces.png)
+
+The output confirmed that the VLAN 10 and VLAN 20 SVIs were operational and using the correct gateway addresses.
+
+---
+
+### SVI Routing Table Verification
+
+The routing table was verified on MLS0.
+
+```cisco
+show ip route
+```
+
+![SVI Routing Table Verification](./images/06-svi-routing-table.png)
+
+The output confirmed that the following networks appeared as directly connected routes:
+
+- `192.168.10.0/24`
+- `192.168.20.0/24`
+
+---
+
+### SVI Connectivity Testing
+
+PC2 tested connectivity to PC3 across the VLAN boundary.
+
+```text
 PC2> ping 192.168.20.10
 ```
 
-![Inter-VLAN Connectivity](./images/intervlan-connectivity.png)
+![SVI Connectivity Verification](./images/07-svi-connectivity.png)
 
-Both tests succeeded, confirming that ROAS and SVI routing forwarded traffic between VLAN 10 and VLAN 20.
+The successful ping confirmed that MLS0 routed traffic between VLAN 10 and VLAN 20 using its SVIs.
 
 ---
 
@@ -200,8 +256,9 @@ Both tests succeeded, confirming that ROAS and SVI routing forwarded traffic bet
 - Devices in different VLANs require a Layer 3 gateway to communicate
 - Router-on-a-Stick uses router subinterfaces over an 802.1Q trunk
 - SVI routing performs inter-VLAN routing directly on a multilayer switch
-- Both methods achieved the same result using different network designs
+- Both routing devices installed directly connected routes for the VLAN networks
 - Interface and routing-table verification confirms more than connectivity testing alone
+- Both methods achieved the same result using different network designs
 
 ---
 
