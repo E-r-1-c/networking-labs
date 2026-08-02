@@ -7,7 +7,7 @@ This lab compares two methods of routing traffic between VLANs:
 - Router-on-a-Stick using router subinterfaces
 - Switch Virtual Interfaces on a multilayer switch
 
-Two separate networks were built in the same Packet Tracer file. Both use the same VLANs and addressing plan but operate independently.
+Both use the same VLANs and addressing plan but operate independently.
 
 ---
 
