@@ -347,8 +347,4 @@ The two designs achieved the same routing goal using different network architect
 ## Environment
 
 - Cisco Packet Tracer
-- Cisco IOS
-- Cisco router
-- Cisco Layer 2 switch
-- Cisco multilayer switch
 ````
