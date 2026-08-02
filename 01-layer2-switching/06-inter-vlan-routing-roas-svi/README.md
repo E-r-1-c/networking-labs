@@ -1,79 +1,83 @@
-# Inter-VLAN Routing: Router-on-a-Stick (ROAS) & Switch Virtual Interfaces (SVI)
+# Inter-VLAN Routing: Router-on-a-Stick and Switch Virtual Interfaces
 
 ## Overview
 
-This lab demonstrates how to enable communication between isolated VLANs using two primary methods: Router-on-a-Stick (ROAS) using a dedicated router subinterface topology and Switch Virtual Interfaces (SVIs) on a Layer 3 Multilayer Switch.
-By introducing Layer 3 routing, devices in different VLANs can securely route traffic between broadcast domains while maintaining Layer 2 isolation.
+This lab demonstrates two methods of routing traffic between VLANs: Router-on-a-Stick using router subinterfaces and Switch Virtual Interfaces using a multilayer switch.
+
+Each method was configured and tested separately. Both allow devices in different VLANs to communicate while preserving separate Layer 2 broadcast domains.
 
 ---
 
 ## Objectives
 
-- Configure 802.1Q trunking on switch interfaces connected to routing devices
-- Implement Router-on-a-Stick (ROAS) using router subinterfaces for multiple VLANs
-- Configure subinterface IP address encapsulation matching 802.1Q VLAN IDs
-- Implement Inter-VLAN routing using Layer 3 Switch Virtual Interfaces (SVIs)
-- Enable IP routing on a Multilayer Switch
-- Verify routing table entries for directly connected VLAN subnets
-- Validate cross-VLAN ICMP connectivity
+- Configure VLAN access ports for end devices
+- Configure 802.1Q trunking between a switch and router
+- Implement Router-on-a-Stick using router subinterfaces
+- Match router subinterface encapsulation to the correct VLAN IDs
+- Configure Switch Virtual Interfaces on a multilayer switch
+- Enable Layer 3 routing on a multilayer switch
+- Verify directly connected VLAN routes
+- Test connectivity between devices in different VLANs
 
 ---
 
-## Network Topology & Switch Roles
+## Network Topology
 
 ![Network Topology](./images/topology.png)
 
-| Device | Role | Interface / Connection | Routing Method |
-|--------|------|------------------------|----------------|
-| R0 | Edge Router | Fa0/0 (Subinterfaces) | Router-on-a-Stick (ROAS) |
-| SW0 | Access / Trunk Switch | Fa0/1 (Trunk to R0) | Layer 2 Switching |
-| MLS0 | Core Multilayer Switch | VLAN 10, 20 SVIs | Hardware Inter-VLAN Routing |
+---
+
+## Routing Methods
+
+| Device | Role | Interface | Method |
+|---|---|---|---|
+| R0 | Inter-VLAN router | `Fa0/0` subinterfaces | Router-on-a-Stick |
+| SW0 | Layer 2 access switch | `Fa0/1` trunk to R0 | ROAS switching |
+| MLS0 | Multilayer switch | VLAN 10 and VLAN 20 SVIs | SVI routing |
+
+> Router-on-a-Stick and SVI routing were tested as separate implementations. R0 and MLS0 were not used as simultaneous gateways for the same VLANs.
 
 ---
 
 ## VLAN Design
 
 | VLAN | Name | Purpose | Subnet | Gateway |
-|:---|:---|:---|:---|:---|
-| 10 | Sales | Sales Department | 192.168.10.0/24 | 192.168.10.1 |
-| 20 | Engineering | Engineering Department | 192.168.20.0/24 | 192.168.20.1 |
-| 99 | Management | Switch Management | 192.168.99.0/24 | 192.168.99.1 |
-| 999 | Native | Unused Native VLAN | N/A | N/A |
+|---|---|---|---|---|
+| 10 | Sales | Sales department | `192.168.10.0/24` | `192.168.10.1` |
+| 20 | Engineering | Engineering department | `192.168.20.0/24` | `192.168.20.1` |
+| 99 | Management | Switch management | `192.168.99.0/24` | `192.168.99.1` |
+| 999 | Native | Unused native VLAN | N/A | N/A |
 
 ---
 
 ## Device Addressing
 
 | Device | Interface | IP Address | Subnet Mask | VLAN | Default Gateway |
-|:---|:---|:---|:---|:---|:---|
-| PC0 | FastEthernet0 | 192.168.10.10 | 255.255.255.0 | 10 | 192.168.10.1 |
-| PC1 | FastEthernet0 | 192.168.20.10 | 255.255.255.0 | 20 | 192.168.20.1 |
-| R0 | FastEthernet0/0.10 | 192.168.10.1 | 255.255.255.0 | 10 | N/A |
-| R0 | FastEthernet0/0.20 | 192.168.20.1 | 255.255.255.0 | 20 | N/A |
-| MLS0 | VLAN 10 | 192.168.10.1 | 255.255.255.0 | 10 | N/A |
-| MLS0 | VLAN 20 | 192.168.20.1 | 255.255.255.0 | 20 | N/A |
+|---|---|---|---|---|---|
+| PC0 | FastEthernet0 | `192.168.10.10` | `255.255.255.0` | 10 | `192.168.10.1` |
+| PC1 | FastEthernet0 | `192.168.20.10` | `255.255.255.0` | 20 | `192.168.20.1` |
+| R0 | FastEthernet0/0.10 | `192.168.10.1` | `255.255.255.0` | 10 | N/A |
+| R0 | FastEthernet0/0.20 | `192.168.20.1` | `255.255.255.0` | 20 | N/A |
+| MLS0 | VLAN 10 | `192.168.10.1` | `255.255.255.0` | 10 | N/A |
+| MLS0 | VLAN 20 | `192.168.20.1` | `255.255.255.0` | 20 | N/A |
 
 ---
 
 ## Configuration
 
-The following tasks were completed during this lab:
+### Router-on-a-Stick
 
-### 1. Switch Trunking & Access Port Setup
-Configured access ports for end devices and established 802.1Q trunking on FastEthernet0/1 connected to the router.
+#### Switch Trunk and Access Ports
+
+SW0 was configured with access ports for the end devices and an 802.1Q trunk toward R0.
 
 ```cisco
-enable
-configure terminal
-
-! Configure Trunk Port to Router
 interface FastEthernet0/1
  switchport mode trunk
  switchport trunk native vlan 999
  switchport trunk allowed vlan 10,20,99,999
  exit
 
-! Configure Access Ports
 interface FastEthernet0/2
  switchport mode access
  switchport access vlan 10
@@ -85,19 +89,15 @@ interface FastEthernet0/3
  exit
 ```
 
-### 2. Router-on-a-Stick (ROAS) Configuration
-Configured subinterfaces on physical interface FastEthernet0/0, assigning 802.1Q encapsulation and default gateway IP addresses.
+#### Router Subinterfaces
+
+Subinterfaces were created on R0 for VLANs 10 and 20. Each subinterface was assigned the default-gateway address for its VLAN.
 
 ```cisco
-enable
-configure terminal
-
-! Enable Physical Interface
 interface FastEthernet0/0
  no shutdown
  exit
 
-! Configure Subinterfaces
 interface FastEthernet0/0.10
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.0
@@ -109,17 +109,15 @@ interface FastEthernet0/0.20
  exit
 ```
 
-### 3. Layer 3 Switch (SVI) Configuration
-Configured Switch Virtual Interfaces (SVIs) on a Multilayer Switch as a modern high-speed alternative to ROAS.
+---
+
+### Switch Virtual Interfaces
+
+MLS0 was configured to route between VLANs using Switch Virtual Interfaces.
 
 ```cisco
-enable
-configure terminal
-
-! Enable IP Routing globally
 ip routing
 
-! Create VLAN Interfaces (SVIs)
 interface vlan 10
  ip address 192.168.10.1 255.255.255.0
  no shutdown
@@ -131,65 +129,105 @@ interface vlan 20
  exit
 ```
 
+The VLAN interfaces provided the default gateways for devices in VLANs 10 and 20.
+
 ---
 
 ## Verification
 
 ### Routing Table Verification
 
-Verified that directly connected VLAN subnets populate the routing table on R0/MLS0.
-
-Command used:
+The routing table was checked on R0 and MLS0.
 
 ```cisco
 show ip route
 ```
 
-![Routing Table Verification](./images/01-routing-table.png)
+![Routing Table Verification](./images/routing-table.png)
 
 The output confirmed:
-- Directly connected routes exist for subnets `192.168.10.0/24` and `192.168.20.0/24`.
-- Subinterfaces / SVIs are actively routing Layer 3 traffic.
+
+- `192.168.10.0/24` appeared as a directly connected network
+- `192.168.20.0/24` appeared as a directly connected network
+- The configured subinterfaces or SVIs were available for Layer 3 forwarding
 
 ---
 
 ### Trunk Verification
 
-Verified active trunk interfaces, 802.1Q encapsulation, and allowed VLAN lists.
-
-Command used:
+The trunk between SW0 and R0 was verified.
 
 ```cisco
 show interfaces trunk
 ```
 
-![Interface Trunk Verification](./images/02-interfaces-trunk.png)
+![Trunk Verification](./images/trunk-verification.png)
 
 The output confirmed:
-- FastEthernet0/1 is actively trunking using 802.1Q.
-- Native VLAN matches VLAN 999.
-- VLANs 10, 20, 99, and 999 are permitted and active across the link.
+
+- `FastEthernet0/1` was operating as a trunk
+- VLAN 999 was configured as the native VLAN
+- VLANs 10, 20, 99, and 999 were allowed across the trunk
+
+---
+
+### SVI Verification
+
+The status of the VLAN interfaces on MLS0 was verified.
+
+```cisco
+show ip interface brief
+```
+
+![SVI Verification](./images/svi-verification.png)
+
+The output confirmed:
+
+- VLAN 10 had the correct gateway address
+- VLAN 20 had the correct gateway address
+- Both SVIs were operational
+- IP routing was enabled on the multilayer switch
 
 ---
 
 ### Connectivity Testing
 
-Verified end-to-end connectivity across isolated VLANs via Layer 3 gateways.
+PC0 tested connectivity to PC1 across the VLAN boundary.
 
-![ICMP Connectivity Verification](./images/03-icmp-ping.png)
+```text
+PC0> ping 192.168.20.10
+```
 
-The output confirmed:
-- `PC0` (`192.168.10.10`) successfully pinged `PC1` (`192.168.20.10`) across the default gateway.
-- Inter-VLAN routing successfully forwarded ICMP traffic between distinct broadcast domains.
+![Inter-VLAN Connectivity](./images/intervlan-connectivity.png)
+
+The test confirmed:
+
+- PC0 could reach PC1
+- Traffic was routed between VLAN 10 and VLAN 20
+- The configured default gateways forwarded traffic between the two subnets
+
+---
+
+## Results
+
+Router-on-a-Stick successfully routed traffic between VLANs using router subinterfaces over a single 802.1Q trunk.
+
+The multilayer switch also successfully routed traffic between VLANs using Switch Virtual Interfaces and internal Layer 3 switching.
+
+Both implementations provided communication between the VLANs while maintaining separate Layer 2 broadcast domains.
 
 ---
 
 ## Key Takeaways
 
-- Isolated VLANs require a Layer 3 routing mechanism (Router or Multilayer Switch) to forward packets between subnets.
-- **ROAS** relies on a single physical link carrying multiple subinterfaces, creating potential bandwidth bottlenecks on high-traffic networks.
-- **SVIs** process Inter-VLAN routing inside the switch ASIC hardware backplane at wire speed, making it the enterprise standard for campus networks.
-- End devices in segmented VLANs must have their default gateway pointed to the corresponding subinterface or SVI IP address.
+- Devices in different VLANs require a Layer 3 gateway to communicate
+- Router-on-a-Stick uses router subinterfaces over a single trunk link
+- Each router subinterface must use the correct 802.1Q VLAN ID
+- SVIs provide Layer 3 gateways directly on a multilayer switch
+- IP routing must be enabled for a multilayer switch to route between VLANs
+- End devices must use the correct VLAN gateway address
+- Router-on-a-Stick and SVI routing solve the same problem using different designs
+- SVI routing avoids sending all inter-VLAN traffic through one external router link
 
 ---
 
