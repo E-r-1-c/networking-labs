@@ -2,18 +2,21 @@
 
 ## Overview
 
-This lab demonstrates Layer 2 security hardening on a Cisco IOS switch. Port Security restricts unauthorized devices on an access port, while DHCP Snooping blocks DHCP server responses received from untrusted interfaces.
+This lab shows how Port Security controls which devices can use an access port and how DHCP Snooping blocks DHCP responses from unauthorized servers.
+
+A single-switch topology was built with one authorized user, one legitimate DHCP server, and one rogue DHCP server. Port Security protects the user port, while DHCP Snooping allows server responses only through the trusted interface.
 
 ---
 
 ## Objectives
 
-- Restrict the authorized user port to one MAC address
+- Limit the authorized user port to one MAC address
 - Enable sticky MAC address learning
 - Configure shutdown violation mode
 - Enable DHCP Snooping for VLAN 10
 - Trust only the legitimate DHCP server interface
-- Test Port Security and rogue DHCP protection
+- Test a Port Security violation
+- Test legitimate and rogue DHCP responses
 
 ---
 
@@ -21,10 +24,10 @@ This lab demonstrates Layer 2 security hardening on a Cisco IOS switch. Port Sec
 
 ![Network Topology](./images/topology.png)
 
-- **SW0**: Central Layer 2 switch
-- **R0**: Legitimate DHCP server connected to `Fa0/1`
-- **PC0**: Authorized host connected to `Fa0/2`
-- **Rogue-DHCP**: Rogue DHCP server connected to `Fa0/3`
+- **SW0** connects all devices in VLAN 10
+- **R0** provides legitimate DHCP service through `Fa0/1`
+- **PC0** is the authorized user connected to `Fa0/2`
+- **Rogue-DHCP** is the unauthorized DHCP server connected to `Fa0/3`
 
 ---
 
@@ -44,7 +47,9 @@ interface FastEthernet0/2
  switchport port-security mac-address sticky
 ```
 
-The port permits one learned MAC address. If another MAC address is detected, the interface is placed into an err-disabled state.
+The port allows one MAC address and learns it automatically as a sticky secure address.
+
+If another MAC address is detected, the port is placed into an err-disabled state.
 
 ---
 
@@ -58,7 +63,7 @@ ip dhcp snooping vlan 10
 no ip dhcp snooping information option
 ```
 
-Option 82 insertion was disabled because it caused DHCP issues in Packet Tracer.
+Option 82 insertion was disabled because it caused DHCP problems in Packet Tracer.
 
 The interface connected to the legitimate DHCP server was configured as trusted.
 
@@ -81,17 +86,25 @@ show port-security interface FastEthernet0/2
 
 ![Port Security Verification](./images/01-port-security.png)
 
-The output confirmed that Port Security was enabled, the port was limited to one MAC address, sticky learning was active, and shutdown violation mode was configured.
+The output confirmed that:
+
+- Port Security was enabled
+- The port was limited to one MAC address
+- Sticky MAC learning was active
+- Shutdown violation mode was configured
+- The authorized MAC address was learned
 
 ---
 
 ### Port Security Violation
 
-An unauthorized device was introduced after the authorized MAC address had already been learned.
+An unauthorized device was connected after the authorized MAC address had already been learned.
 
 ![Port Security Violation](./images/02-port-security-violation.png)
 
-The switch detected the unauthorized MAC address and placed `Fa0/2` into an err-disabled state, preventing the device from accessing the network.
+The switch detected the new MAC address and placed `Fa0/2` into an err-disabled state.
+
+This prevented the unauthorized device from using the protected port.
 
 ---
 
@@ -103,7 +116,11 @@ show ip dhcp snooping
 
 ![DHCP Snooping Verification](./images/04-dhcp-snooping.png)
 
-The output confirmed that DHCP Snooping was active for VLAN 10, `Fa0/1` was trusted, and the access ports remained untrusted.
+The output confirmed that:
+
+- DHCP Snooping was enabled for VLAN 10
+- `Fa0/1` was configured as trusted
+- The access ports remained untrusted
 
 ---
 
@@ -115,28 +132,40 @@ show ip dhcp snooping binding
 
 ![DHCP Snooping Binding](./images/05-dhcp-binding.png)
 
-The binding table recorded the legitimate client’s MAC address, assigned IP address, lease time, VLAN, and switch interface.
+The binding table recorded the legitimate client’s:
+
+- MAC address
+- Assigned IP address
+- Lease time
+- VLAN
+- Switch interface
 
 ---
 
 ### Rogue DHCP Server Test
 
-Packet Tracer simulation mode was used to observe DHCP traffic from the legitimate and rogue DHCP servers.
+Packet Tracer simulation mode was used to compare DHCP responses from the legitimate and rogue servers.
 
 ![Rogue DHCP Drop](./images/06-rogue-dhcp-drop.png)
 
-The legitimate DHCP response entering through trusted interface `Fa0/1` was allowed. The rogue DHCP response entering through untrusted interface `Fa0/3` was dropped.
+The test confirmed that:
+
+- The legitimate response entering through trusted interface `Fa0/1` was allowed
+- The rogue response entering through untrusted interface `Fa0/3` was dropped
+- PC0 received its network configuration from the legitimate DHCP server
 
 ---
 
 ## Key Takeaways
 
-- Port Security limits which devices can use an access port
+- Port Security controls which devices can use an access port
 - Sticky learning automatically records the authorized MAC address
 - Shutdown violation mode places the port into an err-disabled state
-- DHCP Snooping permits DHCP server responses only through trusted interfaces
+- DHCP Snooping allows server responses only through trusted interfaces
 - Access ports remain untrusted by default
-- DHCP Snooping drops rogue responses without shutting down the rogue server port
+- Rogue DHCP responses received on untrusted ports are dropped
+- DHCP Snooping does not shut down the rogue server port
+- The binding table records legitimate DHCP assignments
 
 ---
 
