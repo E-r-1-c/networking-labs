@@ -1,6 +1,6 @@
 # Layer 2 Switching
 
-Hands-on Cisco switching labs covering VLANs, trunking, redundancy, Layer 2 security, Inter-VLAN routing, and troubleshooting. This section focuses on building reliable switched networks, validating network behavior, and diagnosing common Layer 2 issues found in enterprise environments.
+Hands-on Cisco switching labs covering VLANs, trunking, STP, Layer 2 security, Inter-VLAN routing, and troubleshooting. This section focuses on building reliable switched networks, validating network behavior, and diagnosing common Layer 2 issues found in enterprise environments.
 
 ---
 
