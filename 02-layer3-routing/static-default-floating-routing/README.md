@@ -34,42 +34,23 @@ R2 also has a loopback network used to test longest-prefix match.
 
 ## Network Design
 
-### LAN Networks
+### Site Networks
 
-| Network | Subnet | Gateway |
-|---|---|---|
-| Site 1 LAN | `192.168.10.0/24` | `192.168.10.1` |
-| Site 2 LAN | `192.168.20.0/24` | `192.168.20.1` |
-| Test Network | `198.51.100.0/24` | R2 Loopback0 |
+| Network | Subnet | Router Address | End Device |
+|---|---|---|---|
+| Site 1 LAN | `192.168.10.0/24` | R0: `192.168.10.1` | PC0: `192.168.10.10` |
+| Site 2 LAN | `192.168.20.0/24` | R1: `192.168.20.1` | PC1: `192.168.20.10` |
+| Test Network | `198.51.100.0/24` | R2 Loopback0: `198.51.100.1` | None |
+
+PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`.
 
 ### Router Links
 
-| Connection | Subnet |
-|---|---|
-| R0–R1 | `10.0.0.0/30` |
-| R0–R2 | `10.0.0.4/30` |
-| R1–R2 | `10.0.0.8/30` |
-
-### Router Addressing
-
-| Router | Connected Network | IP Address |
+| Link | Subnet | Router Addresses |
 |---|---|---|
-| R0 | Site 1 LAN | `192.168.10.1/24` |
-| R0 | R0–R1 Link | `10.0.0.1/30` |
-| R0 | R0–R2 Link | `10.0.0.5/30` |
-| R1 | Site 2 LAN | `192.168.20.1/24` |
-| R1 | R0–R1 Link | `10.0.0.2/30` |
-| R1 | R1–R2 Link | `10.0.0.9/30` |
-| R2 | R0–R2 Link | `10.0.0.6/30` |
-| R2 | R1–R2 Link | `10.0.0.10/30` |
-| R2 | Loopback0 | `198.51.100.1/24` |
-
-### Endpoint Addressing
-
-| Device | IP Address | Default Gateway |
-|---|---|---|
-| PC0 | `192.168.10.10/24` | `192.168.10.1` |
-| PC1 | `192.168.20.10/24` | `192.168.20.1` |
+| Primary Link — R0 to R1 | `10.0.0.0/30` | R0: `10.0.0.1`, R1: `10.0.0.2` |
+| Alternate Link — R0 to R2 | `10.0.0.4/30` | R0: `10.0.0.5`, R2: `10.0.0.6` |
+| Alternate Link — R2 to R1 | `10.0.0.8/30` | R2: `10.0.0.10`, R1: `10.0.0.9` |
 
 ---
 
