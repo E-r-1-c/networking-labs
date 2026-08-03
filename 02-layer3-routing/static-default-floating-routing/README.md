@@ -2,16 +2,16 @@
 
 ## Overview
 
-This lab shows how static routes connect different networks, how default routes handle unknown destinations, and how floating static routes provide a backup path if the main route fails.
+This lab shows how static routes connect different networks, how default routes send unknown traffic toward an ISP, and how floating static routes provide a backup path if the main route fails.
 
-A three-router topology was built with a direct path between two LANs and an alternate path through a third router. The alternate path provides backup connectivity if the direct connection fails.
+A three-router topology was built with a direct path between two LANs and an alternate path through an ISP router. The ISP router also provides access to an Internet test server.
 
 ---
 
 ## Objectives
 
 - Configure static routes between IPv4 networks
-- Configure a default route for unknown destinations
+- Configure default routes toward an ISP
 - Configure floating static routes for backup connectivity
 - Use administrative distance to choose the preferred route
 - Demonstrate longest-prefix match
@@ -26,9 +26,9 @@ A three-router topology was built with a direct path between two LANs and an alt
 
 R0 connects the Site 1 LAN, and R1 connects the Site 2 LAN.
 
-The direct link between R0 and R1 is the preferred path. R2 provides an alternate path if the direct link fails.
+The direct link between R0 and R1 is the preferred path between the sites. R2 acts as the ISP router and provides an alternate path if the direct link fails.
 
-R2 also has a loopback network used to test longest-prefix match.
+R2 also connects to an Internet test server used to verify the default routes.
 
 ---
 
@@ -40,17 +40,17 @@ R2 also has a loopback network used to test longest-prefix match.
 |---|---|---|---|
 | Site 1 LAN | `192.168.10.0/24` | R0: `192.168.10.1` | PC0: `192.168.10.10` |
 | Site 2 LAN | `192.168.20.0/24` | R1: `192.168.20.1` | PC1: `192.168.20.10` |
-| Test Network | `198.51.100.0/24` | R2 Loopback0: `198.51.100.1` | None |
+| Internet Server Network | `203.0.113.0/24` | R2: `203.0.113.1` | Server0: `203.0.113.10` |
 
-PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`.
+PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`. Server0 uses `203.0.113.1`.
 
 ### Router Links
 
 | Link | Subnet | Router Addresses |
 |---|---|---|
 | Primary Link — R0 to R1 | `10.0.0.0/30` | R0: `10.0.0.1`, R1: `10.0.0.2` |
-| Alternate Link — R0 to R2 | `10.0.0.4/30` | R0: `10.0.0.5`, R2: `10.0.0.6` |
-| Alternate Link — R2 to R1 | `10.0.0.8/30` | R2: `10.0.0.10`, R1: `10.0.0.9` |
+| Site 1 ISP Link — R0 to R2 | `10.0.0.4/30` | R0: `10.0.0.5`, R2: `10.0.0.6` |
+| Site 2 ISP Link — R1 to R2 | `10.0.0.8/30` | R1: `10.0.0.9`, R2: `10.0.0.10` |
 
 ---
 
@@ -58,22 +58,22 @@ PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`.
 
 ### R0 Routing
 
-R0 uses a default route through R1 as the preferred path.
+R0 uses the direct link to R1 as the preferred path to the Site 2 LAN.
 
-A second default route goes through R2. It uses a higher administrative distance, making it a floating static route. It becomes active only if the preferred route fails.
-
-```cisco
-ip route 0.0.0.0 0.0.0.0 10.0.0.2
-ip route 0.0.0.0 0.0.0.0 10.0.0.6 10
-```
-
-R0 also has a specific route to the test network on R2.
+A floating static route through R2 provides a backup path. It uses a higher administrative distance and becomes active only if the preferred route fails.
 
 ```cisco
-ip route 198.51.100.0 255.255.255.0 10.0.0.6
+ip route 192.168.20.0 255.255.255.0 10.0.0.2
+ip route 192.168.20.0 255.255.255.0 10.0.0.6 10
 ```
 
-The specific route is chosen instead of the default route because it is the longer match.
+R0 uses a default route through R2 for unknown destinations.
+
+```cisco
+ip route 0.0.0.0 0.0.0.0 10.0.0.6
+```
+
+The specific route to `192.168.20.0/24` is chosen instead of the default route because it is the longer and more-specific match.
 
 ---
 
@@ -88,31 +88,24 @@ ip route 192.168.10.0 255.255.255.0 10.0.0.1
 ip route 192.168.10.0 255.255.255.0 10.0.0.10 10
 ```
 
-R1 also uses R2 to reach the test network.
+R1 also uses a default route through R2 for unknown destinations.
 
 ```cisco
-ip route 198.51.100.0 255.255.255.0 10.0.0.10
+ip route 0.0.0.0 0.0.0.0 10.0.0.10
 ```
 
 ---
 
 ### R2 Routing
 
-R2 provides the alternate path between the two LANs.
+R2 acts as the ISP router and has routes back to both site networks.
 
 ```cisco
 ip route 192.168.10.0 255.255.255.0 10.0.0.5
 ip route 192.168.20.0 255.255.255.0 10.0.0.9
 ```
 
-These routes allow R2 to forward traffic between the sites if the direct R0–R1 link fails.
-
-The loopback interface creates a separate network for longest-prefix match testing.
-
-```cisco
-interface Loopback0
- ip address 198.51.100.1 255.255.255.0
-```
+These routes allow R2 to return server traffic to each site and forward traffic between the sites if the direct R0–R1 link fails.
 
 ---
 
@@ -144,9 +137,9 @@ show ip route
 
 The output confirmed that:
 
-- The preferred default route through R1 was active
-- The floating default route through R2 was inactive
-- The specific route to the test network through R2 was active
+- The preferred route to Site 2 through R1 was active
+- The floating route to Site 2 through R2 was inactive
+- The default route toward R2 was active
 
 ---
 
@@ -160,13 +153,15 @@ show ip route
 
 ![R1 Normal Routing Table](./images/03-r1-normal-routing-table.png)
 
-The output confirmed that R1 used the direct link to R0 as the preferred route to the Site 1 LAN.
+The output confirmed that:
 
-The floating static route through R2 remained inactive.
+- The preferred route to Site 1 through R0 was active
+- The floating route to Site 1 through R2 was inactive
+- The default route toward R2 was active
 
 ---
 
-### Primary Path Testing
+### Primary Path and Longest-Prefix Match
 
 PC0 traced the path to PC1 while all links were working.
 
@@ -178,24 +173,23 @@ PC0> tracert 192.168.20.10
 
 The trace confirmed that traffic used the direct link between R0 and R1.
 
+R0 had both a specific route to `192.168.20.0/24` and a default route through R2. The specific route was selected because it was the longer and more-specific match.
+
 ---
 
-### Longest-Prefix Match Testing
+### Default Route Testing
 
-PC0 traced the path to the test network on R2.
+PC0 traced the path to the Internet test server.
 
 ```text
-PC0> tracert 198.51.100.1
+PC0> tracert 203.0.113.10
 ```
 
-![Longest-Prefix Match Verification](./images/05-longest-prefix-match.png)
+![Default Route Verification](./images/05-default-route.png)
 
-R0 had two routes that matched the destination:
+The trace confirmed that traffic to the server followed the default route from R0 to R2.
 
-- The default route `0.0.0.0/0` through R1
-- The specific route `198.51.100.0/24` through R2
-
-The `/24` route was selected because it was the longer and more-specific match.
+PC1 also reached Server0 through its default route to R2.
 
 ---
 
@@ -248,17 +242,19 @@ The output confirmed that:
 - The preferred routes returned
 - The floating static routes became inactive
 - Traffic returned to the direct path between R0 and R1
+- The default routes toward R2 remained active
 
 ---
 
 ## Key Takeaways
 
 - Static routes manually tell a router how to reach another network
-- A default route handles destinations without a more-specific route
+- A default route sends unknown traffic toward the ISP
 - Longest-prefix match chooses the most-specific route
 - Administrative distance chooses between routes to the same destination
 - A floating static route uses a higher administrative distance to act as a backup
 - Floating routes become active when the preferred route fails
+- R2 provides ISP connectivity and an alternate path between the sites
 - Both forward and return routes are required for communication
 - Routing tables show which routes are active
 - Traceroute shows the path traffic takes
