@@ -2,16 +2,16 @@
 
 ## Overview
 
-This lab demonstrates how VLANs divide a switched network into separate Layer 2 broadcast domains and how 802.1Q trunks carry traffic for multiple VLANs between switches.
+This lab demonstrates how VLANs divide a switched network into separate Layer 2 broadcast domains and how 802.1Q trunks carry multiple VLANs between switches.
 
-Devices assigned to the same VLAN can communicate across the trunk links. Devices in different VLANs cannot communicate because no Layer 3 routing is configured.
+A multi-switch topology was built with devices assigned to separate VLANs. The trunk links allow devices in the same VLAN to communicate across switches while keeping different VLANs isolated until Layer 3 routing is added.
 
 ---
 
 ## Objectives
 
 - Create VLANs for separate network groups
-- Assign switch access ports to the correct VLANs
+- Assign access ports to the correct VLANs
 - Configure 802.1Q trunk links between switches
 - Configure a dedicated native VLAN
 - Restrict trunks to the required VLANs
