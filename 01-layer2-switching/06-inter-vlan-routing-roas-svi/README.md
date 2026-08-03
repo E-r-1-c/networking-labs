@@ -7,7 +7,7 @@ This lab compares two methods of routing traffic between VLANs:
 - **Router-on-a-Stick (ROAS)** using router subinterfaces
 - **Switch Virtual Interfaces (SVIs)** on a multilayer switch
 
-Two disconnected networks were built in the same Packet Tracer file. Both use the same VLANs and addressing plan so each method can be configured and tested independently.
+Two disconnected networks were built. Both use the same VLANs and addressing plan so each method can be configured and tested independently.
 
 ---
 
