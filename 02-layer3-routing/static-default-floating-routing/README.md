@@ -28,21 +28,21 @@ R0 connects the Site 1 LAN, and R1 connects the Site 2 LAN.
 
 The direct link between R0 and R1 is the preferred path between the sites. R2 connects both sites to the ISP and provides an alternate path if the direct link fails.
 
-Cloud0 represents the ISP, while Server0 provides a reachable destination for testing the default routes.
+Cloud0 represents the Internet. A loopback interface on R2 provides a reachable address for testing the default routes.
 
 ---
 
 ## Network Design
 
-### Site and ISP Networks
+### Site Networks
 
 | Network | Subnet | Router Address | End Device |
 |---|---|---|---|
-| Site 1 LAN | `192.168.10.0/24` | R0: `192.168.10.1` | PC0: `192.168.10.10` |
-| Site 2 LAN | `192.168.20.0/24` | R1: `192.168.20.1` | PC1: `192.168.20.10` |
-| ISP Test Network | `203.0.113.0/24` | R2: `203.0.113.1` | Server0: `203.0.113.10` |
+| Site 1 LAN | `192.168.10.0/24` | R0: `192.168.10.1` | PC0: `192.168.10.2` |
+| Site 2 LAN | `192.168.20.0/24` | R1: `192.168.20.1` | PC1: `192.168.20.2` |
+| Simulated Internet | `203.0.113.1/32` | R2 Loopback0: `203.0.113.1` | None |
 
-PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`, and Server0 uses `203.0.113.1`.
+PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`.
 
 ### Router Links
 
@@ -73,7 +73,7 @@ R0 uses a default route through R2 for unknown destinations.
 ip route 0.0.0.0 0.0.0.0 10.0.0.6
 ```
 
-The specific route to `192.168.20.0/24` is chosen instead of the default route because it is the longer and more-specific match.
+The specific route to `192.168.20.0/24` is selected instead of the default route because it is the longer and more-specific match.
 
 ---
 
@@ -107,7 +107,12 @@ ip route 192.168.10.0 255.255.255.0 10.0.0.5
 ip route 192.168.20.0 255.255.255.0 10.0.0.9
 ```
 
-These routes allow R2 to return ISP traffic to each site and forward traffic between the sites if the direct R0–R1 link fails.
+A loopback interface provides a reachable address that represents an Internet destination.
+
+```cisco
+interface Loopback0
+ ip address 203.0.113.1 255.255.255.255
+```
 
 ---
 
@@ -154,7 +159,7 @@ The output confirmed that:
 PC0 traced the path to PC1 while all links were working.
 
 ```text
-PC0> tracert 192.168.20.10
+PC0> tracert 192.168.20.2
 ```
 
 ![Primary Path Verification](./images/03-primary-path.png)
@@ -167,17 +172,17 @@ R0 had a specific route to `192.168.20.0/24` and a default route through R2. The
 
 ### Default Route Testing
 
-PC0 traced the path to Server0 on the ISP test network.
+PC0 traced the path to the simulated Internet address on R2.
 
 ```text
-PC0> tracert 203.0.113.10
+PC0> tracert 203.0.113.1
 ```
 
 ![Default Route Verification](./images/04-default-route.png)
 
-The trace confirmed that traffic to Server0 followed the default route from R0 to R2.
+The trace confirmed that traffic to `203.0.113.1` followed the default route from R0 to R2.
 
-PC1 also reached Server0 through its default route to R2.
+PC1 also reached the simulated Internet address through its default route to R2.
 
 ---
 
@@ -212,7 +217,7 @@ The output confirmed that the preferred route to Site 1 was removed and the floa
 PC0 traced the path to PC1 while the direct R0–R1 link was down.
 
 ```text
-PC0> tracert 192.168.20.10
+PC0> tracert 192.168.20.2
 ```
 
 ![Backup Path Verification](./images/07-backup-path.png)
