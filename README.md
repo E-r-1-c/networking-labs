@@ -1,57 +1,41 @@
 # Networking Labs
 
-A collection of hands-on networking labs covering Layer 2 switching, routing, IPv6, network services, security, and enterprise network design.
+Hands-on Cisco networking labs covering switching, routing, network services, security, WAN connectivity, troubleshooting, and enterprise network design.
 
-Each lab focuses on understanding how networks operate, why technologies are used, and how to configure and troubleshoot them in realistic scenarios.
-
----
-
-## Objective
-
-Develop practical experience with enterprise networking by:
-
-- Building and validating Layer 2 and Layer 3 networks
-- Implementing dynamic routing and network services
-- Securing networks using industry-standard technologies
-- Troubleshooting connectivity and configuration issues
-- Integrating multiple technologies into complete network designs
+This repository shows how I build networks, configure networking technologies, verify how they operate, and test what happens when links or configurations fail.
 
 ---
 
 ## Repository Structure
 
-- [ ] Layer 2 Switching
-- [ ] Routing
-- [ ] OSPF
-- [ ] IPv6
-- [ ] Network Services
-- [ ] Network Address Translation (NAT)
-- [ ] Network Security
-- [ ] High Availability
-- [ ] Enterprise Networks
-- [ ] Troubleshooting
+| Section | Focus |
+|---|---|
+| **01 — Layer 2 Switching** | VLANs, trunking, Inter-VLAN routing, STP, EtherChannel, Port Security, and DHCP Snooping |
+| **02 — Layer 3 Routing** | Static routes, default routes, floating static routes, OSPFv2, IPv6 routing, and OSPFv3 |
+| **03 — Network Services** | DHCP, DHCP relay, IPv6 address assignment, NTP, Syslog, SNMP, configuration backups, and HSRP |
+| **04 — Network Security** | Access control lists, Dynamic ARP Inspection, SSH, AAA, and VTY security |
+| **05 — Edge, WAN & VPN** | NAT, PAT, serial WAN connections, GRE tunnels, and site-to-site VPNs |
+| **06 — Network Troubleshooting** | Broken switching, routing, service, security, and edge-network scenarios |
+| **07 — Enterprise Networks** | Larger campus and branch networks that combine technologies from the focused labs |
 
 ---
 
-## Lab Methodology
+## Lab Approach
 
-Each lab is designed to:
+Each lab focuses on a clear networking problem and includes:
 
-- Build a realistic network topology
-- Configure one or more networking technologies
-- Verify expected behavior
-- Troubleshoot common issues
-- Explain how and why the network behaves as it does
+- A network topology and addressing plan
+- The main device configurations
+- Commands used to verify operation
+- Connectivity and traffic-path testing
+- Failure and recovery testing where appropriate
+- Key takeaways from the completed lab
 
-The focus is not simply on configuration, but on understanding packet flow, protocol behavior, and network design.
+The goal is not only to make the network work, but to understand why traffic follows a certain path, how the devices make decisions, and what changes when part of the network fails.
 
 ---
 
 ## Environment
 
-All labs are built and tested using:
-
 - Cisco Packet Tracer
-- Wireshark
-- tcpdump
-- Linux-based systems
+- Cisco IOS
