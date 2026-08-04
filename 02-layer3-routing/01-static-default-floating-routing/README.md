@@ -1,22 +1,25 @@
-# Static, Default & Floating Routing
+# Single-Area OSPFv2
 
 ## Overview
 
-This lab shows how static routes connect different networks, how default routes handle unknown destinations, and how floating static routes provide a backup path if the main route fails.
+This lab shows how OSPF routers discover neighbors, exchange routes, choose the best path using cost, and automatically use another path when a link fails.
 
-A three-router topology was built with a direct path between two LANs. A third router connects both sites to the ISP and provides an alternate path if the direct connection fails.
+A four-router topology was built between two LANs. R1 provides the preferred path between the sites, while R2 provides a higher-cost backup path. R0, R1, and R2 also share an Ethernet network to demonstrate OSPF neighbor formation and DR and BDR election.
 
 ---
 
 ## Objectives
 
-- Configure static routes between IPv4 networks
-- Configure default routes toward an ISP
-- Configure floating static routes for backup connectivity
-- Use administrative distance to choose the preferred route
-- Demonstrate longest-prefix match
-- Verify routing tables and traffic paths
-- Test failover and recovery after a link failure
+- Configure single-area OSPFv2
+- Assign OSPF router IDs
+- Form OSPF neighbor relationships
+- Demonstrate DR and BDR election
+- Configure passive interfaces
+- Use OSPF cost to control path selection
+- Advertise a default route through OSPF
+- Verify OSPF routes and traffic paths
+- Test convergence after a link failure
+- Confirm the preferred path returns after recovery
 
 ---
 
@@ -24,11 +27,13 @@ A three-router topology was built with a direct path between two LANs. A third r
 
 ![Network Topology](./images/topology.png)
 
-R0 connects the Site 1 LAN, and R1 connects the Site 2 LAN.
+R0 connects the Site 1 LAN, and R3 connects the Site 2 LAN.
 
-The direct link between R0 and R1 is the preferred path between the sites. R2 connects both sites to the ISP and provides an alternate path if the direct link fails.
+R1 provides the preferred path between R0 and R3. R2 provides a higher-cost backup path if the R1–R3 link fails.
 
-Cloud0 represents the Internet. A loopback interface on R2 provides a reachable address for testing the default routes.
+R0, R1, and R2 connect to the same Ethernet network through SW0. This shared network is used to demonstrate OSPF neighbor formation and DR and BDR election.
+
+R3 acts as the network edge and advertises a default route to the other routers. A loopback interface on R3 provides a reachable address for testing the default route.
 
 ---
 
@@ -39,227 +44,339 @@ Cloud0 represents the Internet. A loopback interface on R2 provides a reachable 
 | Network | Subnet | Router Address | End Device |
 |---|---|---|---|
 | Site 1 LAN | `192.168.10.0/24` | R0: `192.168.10.1` | PC0: `192.168.10.2` |
-| Site 2 LAN | `192.168.20.0/24` | R1: `192.168.20.1` | PC1: `192.168.20.2` |
-| Simulated Internet | `203.0.113.1/32` | R2 Loopback0: `203.0.113.1` | None |
+| Site 2 LAN | `192.168.30.0/24` | R3: `192.168.30.1` | PC1: `192.168.30.2` |
+| Simulated External Network | `203.0.113.1/32` | R3 Loopback0: `203.0.113.1` | None |
 
-PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.20.1`.
+PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.30.1`.
 
 ### Router Links
 
 | Link | Subnet | Router Addresses |
 |---|---|---|
-| Primary Link — R0 to R1 | `10.0.0.0/30` | R0: `10.0.0.1`, R1: `10.0.0.2` |
-| Site 1 Edge Link — R0 to R2 | `10.0.0.4/30` | R0: `10.0.0.5`, R2: `10.0.0.6` |
-| Site 2 Edge Link — R1 to R2 | `10.0.0.8/30` | R1: `10.0.0.9`, R2: `10.0.0.10` |
+| Shared OSPF Network | `10.0.0.0/24` | R0: `10.0.0.1`, R1: `10.0.0.2`, R2: `10.0.0.3` |
+| Preferred Link — R1 to R3 | `10.0.1.0/30` | R1: `10.0.1.1`, R3: `10.0.1.2` |
+| Backup Link — R2 to R3 | `10.0.2.0/30` | R2: `10.0.2.1`, R3: `10.0.2.2` |
+
+---
+
+## OSPF Design
+
+All internal networks are placed in OSPF area 0.
+
+| Router | Router ID | OSPF Priority | Shared-Network Role |
+|---|---|---:|---|
+| R0 | `1.1.1.1` | `0` | DROTHER |
+| R1 | `2.2.2.2` | `100` | BDR |
+| R2 | `3.3.3.3` | `200` | DR |
+| R3 | `4.4.4.4` | Not connected | Not on shared network |
+
+R2 has the highest priority and becomes the DR.
+
+R1 has the second-highest priority and becomes the BDR.
+
+R0 uses a priority of `0`, preventing it from becoming the DR or BDR.
+
+The R2–R3 link uses a higher OSPF cost. This keeps the path through R1 preferred while leaving the path through R2 available as a backup.
 
 ---
 
 ## Configuration
 
-### R0 Routing
+### R0 OSPF Configuration
 
-R0 uses the direct link to R1 as the preferred path to the Site 2 LAN.
+R0 advertises the Site 1 LAN and the shared OSPF network.
 
-A floating static route through R2 provides a backup path. Its higher administrative distance keeps it inactive while the preferred route is available.
-
-```cisco
-ip route 192.168.20.0 255.255.255.0 10.0.0.2
-ip route 192.168.20.0 255.255.255.0 10.0.0.6 10
-```
-
-R0 uses a default route through R2 for unknown destinations.
+The Site 1 LAN interface is passive because it connects to a PC instead of another OSPF router.
 
 ```cisco
-ip route 0.0.0.0 0.0.0.0 10.0.0.6
-```
+interface GigabitEthernet0/0
+ ip address 10.0.0.1 255.255.255.0
+ ip ospf priority 0
+ no shutdown
 
-The specific route to `192.168.20.0/24` is selected instead of the default route because it is the longer and more-specific match.
+interface GigabitEthernet0/1
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
 
----
-
-### R1 Routing
-
-R1 uses the direct link to R0 as the preferred path to the Site 1 LAN.
-
-A floating static route through R2 provides a backup path.
-
-```cisco
-ip route 192.168.10.0 255.255.255.0 10.0.0.1
-ip route 192.168.10.0 255.255.255.0 10.0.0.10 10
-```
-
-R1 also uses a default route through R2 for unknown destinations.
-
-```cisco
-ip route 0.0.0.0 0.0.0.0 10.0.0.10
+router ospf 1
+ router-id 1.1.1.1
+ passive-interface GigabitEthernet0/1
+ network 10.0.0.0 0.0.0.255 area 0
+ network 192.168.10.0 0.0.0.255 area 0
 ```
 
 ---
 
-### R2 Routing
+### R1 OSPF Configuration
 
-R2 connects both sites to the ISP and provides the alternate path between them.
-
-Static routes provide return paths to both site networks.
+R1 participates in the shared OSPF network and provides the preferred path to R3.
 
 ```cisco
-ip route 192.168.10.0 255.255.255.0 10.0.0.5
-ip route 192.168.20.0 255.255.255.0 10.0.0.9
+interface GigabitEthernet0/0
+ ip address 10.0.0.2 255.255.255.0
+ ip ospf priority 100
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 10.0.1.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+ network 10.0.0.0 0.0.0.255 area 0
+ network 10.0.1.0 0.0.0.3 area 0
 ```
 
-A loopback interface provides a reachable address that represents an Internet destination.
+---
+
+### R2 OSPF Configuration
+
+R2 has the highest priority on the shared network and becomes the DR.
+
+The link from R2 to R3 uses a higher OSPF cost so it acts as the backup path.
 
 ```cisco
+interface GigabitEthernet0/0
+ ip address 10.0.0.3 255.255.255.0
+ ip ospf priority 200
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 10.0.2.1 255.255.255.252
+ ip ospf cost 50
+ no shutdown
+
+router ospf 1
+ router-id 3.3.3.3
+ network 10.0.0.0 0.0.0.255 area 0
+ network 10.0.2.0 0.0.0.3 area 0
+```
+
+---
+
+### R3 OSPF Configuration
+
+R3 connects to the preferred and backup paths and advertises the Site 2 LAN.
+
+The Site 2 LAN interface is passive because it connects to a PC instead of another OSPF router.
+
+The R3 interface toward R2 also uses a higher cost so the R1 path is preferred in both directions.
+
+```cisco
+interface GigabitEthernet0/0
+ ip address 10.0.1.2 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 10.0.2.2 255.255.255.252
+ ip ospf cost 50
+ no shutdown
+
+interface GigabitEthernet0/2
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+
 interface Loopback0
  ip address 203.0.113.1 255.255.255.255
 ```
+
+R3 uses a static default route to simulate an Internet connection.
+
+```cisco
+ip route 0.0.0.0 0.0.0.0 Null0
+```
+
+R3 then advertises that default route to the other OSPF routers.
+
+```cisco
+router ospf 1
+ router-id 4.4.4.4
+ passive-interface GigabitEthernet0/2
+ network 10.0.1.0 0.0.0.3 area 0
+ network 10.0.2.0 0.0.0.3 area 0
+ network 192.168.30.0 0.0.0.255 area 0
+ default-information originate
+```
+
+The `203.0.113.1` loopback network is not advertised through OSPF.
+
+The internal routers reach it using the default route advertised by R3.
 
 ---
 
 ## Verification
 
-### R0 Routing Table
+### OSPF Neighbor Formation
 
-The routing table was checked on R0 while all links were working.
+The OSPF neighbors were checked on R0.
 
 ```cisco
-show ip route
+show ip ospf neighbor
 ```
 
-![R0 Routing Table](./images/01-r0-routing-table.png)
+![OSPF Neighbor Formation](./images/01-ospf-neighbors.png)
 
 The output confirmed that:
 
-- The preferred route to Site 2 through R1 was active
-- The floating route to Site 2 through R2 was inactive
-- The default route through R2 was active
+- R0 formed neighbor relationships with R1 and R2
+- R2 was the DR
+- R1 was the BDR
+- Both neighbors reached the FULL state
 
 ---
 
-### R1 Routing Table
+### DR and BDR Election
 
-The routing table was checked on R1.
+The shared OSPF interface was checked on R0.
 
 ```cisco
-show ip route
+show ip ospf interface GigabitEthernet0/0
 ```
 
-![R1 Routing Table](./images/02-r1-routing-table.png)
+![DR and BDR Election](./images/02-dr-bdr-election.png)
 
 The output confirmed that:
 
-- The preferred route to Site 1 through R0 was active
-- The floating route to Site 1 through R2 was inactive
-- The default route through R2 was active
+- R2 became the DR
+- R1 became the BDR
+- R0 remained a DROTHER
+- OSPF priority controlled the election
 
 ---
 
-### Primary Path and Longest-Prefix Match
+### OSPF Routing Table
+
+The OSPF routes were checked on R0.
+
+```cisco
+show ip route ospf
+```
+
+![OSPF Routing Table](./images/03-ospf-routing-table.png)
+
+The output confirmed that R0 learned:
+
+- The Site 2 LAN through OSPF
+- The networks between R1, R2, and R3
+- A default route advertised by R3
+
+The route to the Site 2 LAN used the lower-cost path through R1.
+
+---
+
+### Primary Path Testing
 
 PC0 traced the path to PC1 while all links were working.
 
 ```text
-PC0> tracert 192.168.20.2
+PC0> tracert 192.168.30.2
 ```
 
-![Primary Path Verification](./images/03-primary-path.png)
+![Primary Path Verification](./images/04-primary-path.png)
 
-The trace confirmed that traffic used the direct link between R0 and R1.
+The trace confirmed that traffic used the preferred path:
 
-R0 had a specific route to `192.168.20.0/24` and a default route through R2. The specific route was selected because it was the longer and more-specific match.
+```text
+PC0 → R0 → R1 → R3 → PC1
+```
+
+OSPF selected this path because it had a lower total cost than the path through R2.
 
 ---
 
 ### Default Route Testing
 
-PC0 traced the path to the simulated Internet address on R2.
+PC0 traced the path to the simulated external address on R3.
 
 ```text
 PC0> tracert 203.0.113.1
 ```
 
-![Default Route Verification](./images/04-default-route.png)
+![Default Route Verification](./images/05-default-route.png)
 
-The trace confirmed that traffic to `203.0.113.1` followed the default route from R0 to R2.
+The trace confirmed that traffic used the OSPF default route advertised by R3.
 
-PC1 also reached the simulated Internet address through its default route to R2.
+R0 did not have a specific route to `203.0.113.1`, so it used the default route.
 
 ---
 
-### Floating Route Activation
+### OSPF Convergence
 
-The direct link between R0 and R1 was disabled to simulate a failure.
-
-The routing table was checked again on R0.
+The preferred R1–R3 link was disabled to simulate a failure.
 
 ```cisco
-show ip route
+interface GigabitEthernet0/1
+ shutdown
 ```
 
-![R0 Floating Route](./images/05-r0-floating-route.png)
-
-The output confirmed that the preferred route to Site 2 was removed and the floating static route through R2 became active.
-
-The routing table was also checked on R1.
+The OSPF routing table was checked again on R0.
 
 ```cisco
-show ip route
+show ip route ospf
 ```
 
-![R1 Floating Route](./images/06-r1-floating-route.png)
+![OSPF Convergence](./images/06-ospf-convergence.png)
 
-The output confirmed that the preferred route to Site 1 was removed and the floating static route through R2 became active.
+The output confirmed that OSPF removed the failed path and installed the available route through R2.
+
+No manual route changes were required.
 
 ---
 
 ### Backup Path Testing
 
-PC0 traced the path to PC1 while the direct R0–R1 link was down.
+PC0 traced the path to PC1 while the R1–R3 link was down.
 
 ```text
-PC0> tracert 192.168.20.2
+PC0> tracert 192.168.30.2
 ```
 
 ![Backup Path Verification](./images/07-backup-path.png)
 
-The trace confirmed that traffic used the alternate path through R2.
+The trace confirmed that traffic used the backup path:
 
-PC0 and PC1 remained connected even though the preferred path was unavailable.
+```text
+PC0 → R0 → R2 → R3 → PC1
+```
+
+PC0 and PC1 remained connected even though the preferred link was unavailable.
 
 ---
 
-### Primary Path Recovery
+### Preferred Path Recovery
 
-The direct link between R0 and R1 was restored.
-
-The routing tables were checked again.
+The R1–R3 link was restored.
 
 ```cisco
-show ip route
+interface GigabitEthernet0/1
+ no shutdown
 ```
 
-![Primary Path Recovery](./images/08-primary-path-recovery.png)
+PC0 traced the path to PC1 again after OSPF reconverged.
 
-The output confirmed that:
+```text
+PC0> tracert 192.168.30.2
+```
 
-- The preferred routes returned
-- The floating static routes became inactive
-- Traffic returned to the direct path between R0 and R1
-- The default routes through R2 remained active
+![Preferred Path Recovery](./images/08-preferred-path-recovery.png)
+
+The trace confirmed that traffic returned to the lower-cost path through R1.
 
 ---
 
 ## Key Takeaways
 
-- Static routes manually tell a router how to reach another network
-- A default route handles destinations without a more-specific route
-- Longest-prefix match chooses the most-specific route
-- Administrative distance chooses between routes to the same destination
-- A floating static route uses a higher administrative distance to act as a backup
-- Floating routes become active when the preferred route fails
-- R2 connects both sites to the ISP and provides an alternate path between them
-- Both forward and return routes are required for communication
-- Routing tables show which routes are active
+- OSPF automatically discovers neighboring routers
+- OSPF exchanges routes instead of requiring a static route for every network
+- Router IDs uniquely identify OSPF routers
+- OSPF priority controls DR and BDR election
+- The DR and BDR are elected on shared Ethernet networks
+- Passive interfaces advertise networks without forming unnecessary neighbors
+- OSPF cost determines the preferred path
+- A higher-cost path can remain available as a backup
+- OSPF automatically changes routes when a link fails
+- `default-information originate` advertises a default route
+- Routing tables show which OSPF routes are active
 - Traceroute shows the path traffic takes
 
 ---
@@ -268,3 +385,5 @@ The output confirmed that:
 
 - Cisco Packet Tracer
 - Cisco IOS
+- OSPFv2
+- Single OSPF area: Area 0
