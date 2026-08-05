@@ -51,8 +51,8 @@ PC0 and PC1 receive their IP address, subnet mask, and default gateway automatic
 
 | Pool | Network | Starting Address | Default Gateway |
 | :--- | :--- | :--- | :--- |
-| CLIENT-LAN-1 | `192.168.10.0/24` | `192.168.10.10` | `192.168.10.1` |
-| CLIENT-LAN-2 | `192.168.20.0/24` | `192.168.20.10` | `192.168.20.1` |
+| Client LAN 1 | `192.168.10.0/24` | `192.168.10.10` | `192.168.10.1` |
+| Client LAN 2 | `192.168.20.0/24` | `192.168.20.10` | `192.168.20.1` |
 
 The pools begin at `.10` so the lower addresses remain available for routers and other devices that require static addresses.
 
@@ -103,7 +103,7 @@ Default Gateway: 192.168.100.1
 The first DHCP pool provides addresses to clients on `192.168.10.0/24`.
 
 ```text
-Pool Name:        CLIENT-LAN-1
+Pool Name:        Client LAN 1
 Default Gateway:  192.168.10.1
 Starting Address: 192.168.10.10
 Subnet Mask:      255.255.255.0
@@ -117,7 +117,7 @@ Maximum Users:    245
 The second DHCP pool provides addresses to clients on `192.168.20.0/24`.
 
 ```text
-Pool Name:        CLIENT-LAN-2
+Pool Name:        Client LAN 2
 Default Gateway:  192.168.20.1
 Starting Address: 192.168.20.10
 Subnet Mask:      255.255.255.0
@@ -130,15 +130,35 @@ When R0 relays a DHCP request, it identifies the client network where the reques
 
 ## Verification
 
-### DHCP Server Pools
+### Client LAN 1 DHCP Pool
 
-The DHCP service was checked on Server0.
+The Client LAN 1 pool was checked on Server0.
 
-![DHCP Server Pools](./images/01-dhcp-server-pools.png)
+![Client LAN 1 DHCP Pool](./images/01a-client-lan1-dhcp-pool.png)
 
-The server contained separate pools for Client LAN 1 and Client LAN 2.
+The pool was configured with:
 
-Each pool used the correct network, starting address, subnet mask, and default gateway.
+- `192.168.10.10` as the starting address
+- `255.255.255.0` as the subnet mask
+- `192.168.10.1` as the default gateway
+- A maximum of 245 users
+
+---
+
+### Client LAN 2 DHCP Pool
+
+The Client LAN 2 pool was checked on Server0.
+
+![Client LAN 2 DHCP Pool](./images/01b-client-lan2-dhcp-pool.png)
+
+The pool was configured with:
+
+- `192.168.20.10` as the starting address
+- `255.255.255.0` as the subnet mask
+- `192.168.20.1` as the default gateway
+- A maximum of 245 users
+
+The DHCP service was enabled, and both client pools were present on Server0.
 
 ---
 
@@ -157,7 +177,7 @@ The output confirmed that PC0 received:
 - An address from `192.168.10.0/24`
 - A `/24` subnet mask
 - `192.168.10.1` as its default gateway
-- Addressing from the correct DHCP pool
+- Its lease from Server0 at `192.168.100.10`
 
 ---
 
@@ -176,7 +196,7 @@ The output confirmed that PC1 received:
 - An address from `192.168.20.0/24`
 - A `/24` subnet mask
 - `192.168.20.1` as its default gateway
-- Addressing from the correct DHCP pool
+- Its lease from Server0 at `192.168.100.10`
 
 ---
 
