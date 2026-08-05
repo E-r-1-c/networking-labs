@@ -1,8 +1,8 @@
 # Network Security
 
-Hands-on Cisco network security labs covering traffic filtering, Layer 2 attack prevention, secure remote management, and device access hardening.
+Hands-on Cisco network security labs covering traffic filtering, access-layer attack prevention, secure remote management, and device access hardening.
 
-This section shows how network devices control traffic, prevent address spoofing, and protect administrative access from unauthorized users.
+This section shows how routers and switches restrict unauthorized traffic, protect access ports, validate address information, and secure administrative access to network devices.
 
 ---
 
@@ -13,16 +13,25 @@ This section shows how network devices control traffic, prevent address spoofing
 - ACL placement and processing order
 - Permit and deny rule testing
 - Implicit deny behavior
+- Port Security and sticky MAC learning
+- Maximum MAC address limits
+- Port Security violation modes
+- DHCP Snooping across multiple VLANs
+- Trusted and untrusted switch interfaces
+- Rogue DHCP server protection
+- DHCP Snooping binding tables
+- DHCP rate limiting on access ports
 - Dynamic ARP Inspection
 - ARP spoofing and poisoning prevention
-- Trusted and untrusted switch interfaces
-- DHCP Snooping binding validation
+- ARP validation using DHCP Snooping bindings
+- IP Source Guard
+- Source IP and MAC address validation
 - Local user authentication
 - RSA key generation and SSH version 2
 - Secure VTY access
 - Telnet removal
 - Login restrictions and session timeouts
-- Configuration and security verification
+- Security failure, attack, and recovery testing
 
 ---
 
@@ -31,8 +40,8 @@ This section shows how network devices control traffic, prevent address spoofing
 | Lab | Description |
 | :--- | :--- |
 | **01 — ACL Traffic Filtering** | Configure standard and extended ACLs to control traffic between networks and verify permitted and denied connections. |
-| **02 — Dynamic ARP Inspection** | Use DHCP Snooping bindings and trusted interfaces to detect and block invalid ARP messages. |
-| **03 — SSH & VTY Hardening** | Replace insecure Telnet access with SSH, configure local authentication, and harden remote management sessions. |
+| **02 — Access-Layer Security Hardening** | Combine Port Security, DHCP Snooping, Dynamic ARP Inspection, and IP Source Guard across multiple VLANs and switches to block unauthorized devices, rogue DHCP responses, ARP spoofing, and source-address spoofing. |
+| **03 — SSH & VTY Hardening** | Replace insecure Telnet access with SSH, configure local authentication, restrict remote access, and harden management sessions. |
 
 ---
 
