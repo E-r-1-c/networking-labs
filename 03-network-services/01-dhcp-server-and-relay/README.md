@@ -2,22 +2,22 @@
 
 ## Overview
 
-This lab shows how a centralized DHCP server automatically assigns IP addresses to clients on different networks and how DHCP relay forwards requests across a router.
+This lab shows how a centralized DHCP server assigns IP addresses to clients on different networks and how DHCP relay forwards requests across a router.
 
-A three-LAN topology was built with the DHCP server on one network and two client networks on separate router interfaces. R0 forwards DHCP requests from both client networks to the server, which assigns addresses from the correct DHCP pool.
+A three-LAN topology was built with the DHCP server on one network and two client networks connected to separate R0 interfaces. R0 forwards DHCP requests from both client networks to Server0, which assigns addresses from the correct DHCP pool.
 
 ---
 
 ## Objectives
 
 - Configure a centralized DHCP server
-- Create separate DHCP pools for different networks
+- Create separate DHCP pools for different client networks
 - Configure DHCP relay on router interfaces
 - Automatically assign client IP addresses
 - Provide the correct subnet mask and default gateway
 - Verify DHCP leases on both client networks
 - Test connectivity between the clients and server
-- Test DHCP failure and recovery when relay is removed
+- Test DHCP relay failure and recovery
 
 ---
 
@@ -29,7 +29,7 @@ Server0 connects to the Server LAN through SW0.
 
 PC0 connects to Client LAN 1 through SW1, and PC1 connects to Client LAN 2 through SW2.
 
-R0 connects all three networks. The DHCP server is not directly connected to either client network, so R0 must relay the DHCP requests to Server0.
+R0 connects all three networks. Because Server0 is on a different network from the clients, R0 must relay their DHCP requests to the server.
 
 ---
 
@@ -54,7 +54,7 @@ PC0 and PC1 receive their IP address, subnet mask, and default gateway automatic
 | CLIENT-LAN-1 | `192.168.10.0/24` | `192.168.10.10` | `192.168.10.1` |
 | CLIENT-LAN-2 | `192.168.20.0/24` | `192.168.20.10` | `192.168.20.1` |
 
-The pools begin at `.10` so the lower addresses remain available for routers and other network devices.
+The pools begin at `.10` so the lower addresses remain available for routers and other devices that require static addresses.
 
 ---
 
@@ -65,24 +65,24 @@ The pools begin at `.10` so the lower addresses remain available for routers and
 R0 connects the server network and both client networks.
 
 ```cisco
-interface GigabitEthernet0/0/0
+interface GigabitEthernet0/0
  ip address 192.168.100.1 255.255.255.0
  no shutdown
 
-interface GigabitEthernet0/0/1
+interface GigabitEthernet0/1
  ip address 192.168.10.1 255.255.255.0
  ip helper-address 192.168.100.10
  no shutdown
 
-interface GigabitEthernet0/0/2
+interface GigabitEthernet0/2
  ip address 192.168.20.1 255.255.255.0
  ip helper-address 192.168.100.10
  no shutdown
 ```
 
-The `ip helper-address` command forwards DHCP requests from each client network to Server0.
+The `ip helper-address` command forwards DHCP messages from each client network to Server0.
 
-The Server LAN interface does not need DHCP relay because Server0 is directly connected to that network.
+The Server LAN interface does not require DHCP relay because Server0 is directly connected to that network.
 
 ---
 
@@ -100,29 +100,31 @@ Default Gateway: 192.168.100.1
 
 ### Client LAN 1 DHCP Pool
 
-The first DHCP pool provides addresses to devices on `192.168.10.0/24`.
+The first DHCP pool provides addresses to clients on `192.168.10.0/24`.
 
 ```text
 Pool Name:        CLIENT-LAN-1
 Default Gateway:  192.168.10.1
 Starting Address: 192.168.10.10
 Subnet Mask:      255.255.255.0
+Maximum Users:    245
 ```
 
 ---
 
 ### Client LAN 2 DHCP Pool
 
-The second DHCP pool provides addresses to devices on `192.168.20.0/24`.
+The second DHCP pool provides addresses to clients on `192.168.20.0/24`.
 
 ```text
 Pool Name:        CLIENT-LAN-2
 Default Gateway:  192.168.20.1
 Starting Address: 192.168.20.10
 Subnet Mask:      255.255.255.0
+Maximum Users:    245
 ```
 
-When R0 relays a DHCP request, it identifies the network where the request was received. Server0 uses that information to choose the correct DHCP pool.
+When R0 relays a DHCP request, it identifies the client network where the request was received. Server0 uses that information to select the correct DHCP pool.
 
 ---
 
@@ -136,7 +138,7 @@ The DHCP service was checked on Server0.
 
 The server contained separate pools for Client LAN 1 and Client LAN 2.
 
-Each pool used the correct network, subnet mask, starting address, and default gateway.
+Each pool used the correct network, starting address, subnet mask, and default gateway.
 
 ---
 
@@ -155,6 +157,7 @@ The output confirmed that PC0 received:
 - An address from `192.168.10.0/24`
 - A `/24` subnet mask
 - `192.168.10.1` as its default gateway
+- Addressing from the correct DHCP pool
 
 ---
 
@@ -173,12 +176,13 @@ The output confirmed that PC1 received:
 - An address from `192.168.20.0/24`
 - A `/24` subnet mask
 - `192.168.20.1` as its default gateway
+- Addressing from the correct DHCP pool
 
 ---
 
 ### DHCP Relay Configuration
 
-The R0 configuration was checked to verify that both client interfaces forwarded DHCP requests to Server0.
+The R0 configuration was checked to verify that both client-facing interfaces forwarded DHCP messages to Server0.
 
 ```cisco
 show running-config
@@ -186,11 +190,12 @@ show running-config
 
 ![DHCP Relay Configuration](./images/04-dhcp-relay-config.png)
 
-The output confirmed that both client-facing interfaces used:
+The output confirmed that:
 
-```cisco
-ip helper-address 192.168.100.10
-```
+- `GigabitEthernet0/1` forwarded DHCP messages from Client LAN 1
+- `GigabitEthernet0/2` forwarded DHCP messages from Client LAN 2
+- Both interfaces forwarded requests to `192.168.100.10`
+- `GigabitEthernet0/0` did not require DHCP relay
 
 ---
 
@@ -208,15 +213,16 @@ PC0> ping 192.168.100.10
 The successful replies confirmed that:
 
 - Both clients received usable DHCP addresses
-- Each client used the correct default gateway
-- R0 routed traffic between the three networks
-- Both clients could reach the centralized server
+- Each client received the correct default gateway
+- R0 routed traffic between all three networks
+- The clients could reach each other
+- The clients could reach the centralized server
 
 ---
 
 ### DHCP Relay Failure
 
-The DHCP relay command was temporarily removed from the Client LAN 2 interface.
+The DHCP relay configuration was temporarily removed from `GigabitEthernet0/2`, which connects to Client LAN 2.
 
 PC1 released its existing address and attempted to obtain a new lease.
 
@@ -227,13 +233,15 @@ PC1> ipconfig /renew
 
 ![DHCP Relay Failure](./images/06-dhcp-relay-failure.png)
 
-PC1 could not obtain a new DHCP lease because DHCP broadcasts could not cross R0 without the relay configuration.
+PC1 could not obtain a new DHCP lease because its broadcast request could not reach Server0 without DHCP relay.
+
+PC0 remained operational because relay was still configured on `GigabitEthernet0/1`.
 
 ---
 
 ### DHCP Relay Recovery
 
-The DHCP relay configuration was restored on the Client LAN 2 interface.
+The DHCP relay configuration was restored on `GigabitEthernet0/2`.
 
 PC1 requested an address again.
 
@@ -243,23 +251,26 @@ PC1> ipconfig /renew
 
 ![DHCP Relay Recovery](./images/07-dhcp-relay-recovery.png)
 
-PC1 received an address from the correct pool after the relay configuration was restored.
+PC1 received an address from the correct DHCP pool after relay was restored.
+
+The successful lease and connectivity tests confirmed that DHCP service had recovered.
 
 ---
 
 ## Key Takeaways
 
 - DHCP automatically provides IP configuration to clients
-- Separate networks require separate DHCP pools
+- Separate client networks require separate DHCP pools
 - DHCP clients begin by sending broadcast messages
-- Routers do not normally forward DHCP broadcasts
-- DHCP relay forwards requests to a server on another network
+- Routers do not normally forward broadcasts between networks
+- DHCP relay forwards DHCP messages to a server on another network
 - `ip helper-address` identifies the destination DHCP server
-- The relay identifies which client network the request came from
-- The server uses that information to select the correct pool
-- Each client receives the correct address and default gateway
-- Removing DHCP relay prevents remote clients from obtaining new leases
-- Restoring DHCP relay restores automatic address assignment
+- Relay is configured on the interface where the client broadcast enters the router
+- The relay identifies which client network sent the request
+- Server0 uses that information to select the correct DHCP pool
+- Server0 requires a static address so the relay destination does not change
+- Removing relay prevents clients on that network from obtaining new leases
+- Restoring relay restores automatic address assignment
 
 ---
 
