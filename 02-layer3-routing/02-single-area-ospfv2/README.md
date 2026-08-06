@@ -29,11 +29,20 @@ A four-router topology connects two LANs. R2 provides the preferred path, while 
 
 R0 connects the Site 1 LAN, and R3 connects the Site 2 LAN.
 
-R2 provides the preferred path between the sites. R1 provides a higher-cost backup path if the R2–R3 link fails.
+Between them are two possible paths:
 
-R0, R1, and R2 connect to the same Ethernet network through SW0. This shared network is used to demonstrate OSPF neighbor formation and DR and BDR election.
+```text
+Preferred Path: R0 → R2 → R3
+Backup Path:    R0 → R1 → R3
+```
 
-R3 acts as the network edge and advertises a default route to the other routers. A loopback interface on R3 provides a reachable address for testing the default route.
+R2 provides the preferred path because its link to R3 has the lower OSPF cost.
+
+R1 provides the backup path because its link to R3 is configured with a higher cost.
+
+R0, R1, and R2 connect to the same Ethernet network through SW0. OSPF uses this shared segment to form neighbor relationships and elect a DR and BDR.
+
+R3 also advertises a default route that the other routers can use to reach a simulated external address.
 
 ---
 
@@ -47,15 +56,17 @@ R3 acts as the network edge and advertises a default route to the other routers.
 | Site 2 LAN | `192.168.30.0/24` | R3: `192.168.30.1` | PC1: `192.168.30.2` |
 | Simulated External Network | `203.0.113.1/32` | R3 Loopback0: `203.0.113.1` | None |
 
-PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.30.1`.
+PC0 uses `192.168.10.1` as its default gateway.
+
+PC1 uses `192.168.30.1` as its default gateway.
 
 ### Router Links
 
-| Link | Subnet | Router Addresses |
-|---|---|---|
-| Shared OSPF Network | `10.0.0.0/24` | R0: `10.0.0.1`, R1: `10.0.0.2`, R2: `10.0.0.3` |
-| Backup Link — R1 to R3 | `10.0.1.0/30` | R1: `10.0.1.1`, R3: `10.0.1.2` |
-| Preferred Link — R2 to R3 | `10.0.2.0/30` | R2: `10.0.2.1`, R3: `10.0.2.2` |
+| Link | Subnet | Router Addresses | Purpose |
+|---|---|---|---|
+| Shared OSPF Network | `10.0.0.0/24` | R0: `10.0.0.1`, R1: `10.0.0.2`, R2: `10.0.0.3` | Neighbor formation and DR/BDR election |
+| R1–R3 Link | `10.0.1.0/30` | R1: `10.0.1.1`, R3: `10.0.1.2` | Higher-cost backup path |
+| R2–R3 Link | `10.0.2.0/30` | R2: `10.0.2.1`, R3: `10.0.2.2` | Lower-cost preferred path |
 
 ---
 
@@ -63,20 +74,22 @@ PC0 uses `192.168.10.1` as its default gateway. PC1 uses `192.168.30.1`.
 
 All internal networks are placed in OSPF area 0.
 
-| Router | Router ID | Shared-Network Role |
+| Router | Router ID | Role on Shared Network |
 |---|---|---|
 | R0 | `0.0.0.1` | DROTHER |
 | R1 | `1.1.1.1` | BDR |
 | R2 | `2.2.2.2` | DR |
-| R3 | `3.3.3.3` | Not connected to shared network |
+| R3 | `3.3.3.3` | Not connected to the shared network |
 
-R2 becomes the DR, and R1 becomes the BDR.
+R2 uses the highest OSPF priority and becomes the DR.
 
-R0 uses an OSPF priority of `0`, preventing it from becoming the DR or BDR.
+R1 uses the second-highest priority and becomes the BDR.
 
-The R1–R3 link uses an OSPF cost of `10`. The R2–R3 link keeps its lower default cost, making R2 the preferred path and R1 the backup path.
+R0 uses an OSPF priority of `0`, which prevents it from becoming the DR or BDR.
 
-The OSPF `network` statements use each interface’s exact IP address with a wildcard mask of `0.0.0.0`. This enables OSPF only on the interface with that exact address.
+The R1–R3 link uses an OSPF cost of `10`. The R2–R3 link keeps its lower default cost. This causes OSPF to prefer the path through R2 while keeping the path through R1 available as a backup.
+
+The OSPF `network` statements use each interface address with a wildcard mask of `0.0.0.0`. This matches only the interface using that exact IP address.
 
 ---
 
@@ -84,9 +97,11 @@ The OSPF `network` statements use each interface’s exact IP address with a wil
 
 ### R0 OSPF Configuration
 
-R0 advertises the Site 1 LAN and the shared OSPF network.
+R0 connects the Site 1 LAN to the shared OSPF network.
 
-The interface facing PC0 is passive because it connects to an end device instead of another OSPF router.
+Its LAN-facing interface is passive because it connects to an end device rather than another OSPF router.
+
+R0 also uses an OSPF priority of `0` on the shared network so it cannot become the DR or BDR.
 
 ```cisco
 interface GigabitEthernet0/0/0
@@ -109,7 +124,9 @@ router ospf 1
 
 ### R1 OSPF Configuration
 
-R1 participates in the shared OSPF network and provides the higher-cost backup path to R3.
+R1 connects the shared OSPF network to R3 and provides the backup path between the two sites.
+
+Its interface toward R3 uses an OSPF cost of `10`, making this path less preferred.
 
 ```cisco
 interface GigabitEthernet0/0/0
@@ -132,9 +149,11 @@ router ospf 1
 
 ### R2 OSPF Configuration
 
-R2 has the highest priority on the shared network and becomes the DR.
+R2 connects the shared OSPF network to R3 and provides the preferred path between the two sites.
 
-Its link to R3 keeps the lower default OSPF cost, making it the preferred path.
+R2 uses the highest OSPF priority on the shared network, causing it to become the DR.
+
+Its link to R3 keeps the lower default OSPF cost.
 
 ```cisco
 interface GigabitEthernet0/0/0
@@ -156,11 +175,11 @@ router ospf 1
 
 ### R3 OSPF Configuration
 
-R3 connects to both available paths and advertises the Site 2 LAN.
+R3 connects both available OSPF paths to the Site 2 LAN.
 
-The interface facing PC1 is passive because it connects to an end device instead of another OSPF router.
+Its interface toward R1 also uses an OSPF cost of `10`, making the R1 path less preferred in both directions.
 
-The R3 interface toward R1 also uses a cost of `10`, making the R1 path less preferred in both directions.
+The interface facing PC1 is passive because it does not connect to another OSPF router.
 
 ```cisco
 interface GigabitEthernet0/0
@@ -186,7 +205,7 @@ R3 uses a static default route to simulate an external connection.
 ip route 0.0.0.0 0.0.0.0 Null0
 ```
 
-R3 advertises that default route to the other OSPF routers.
+R3 then advertises the default route into OSPF.
 
 ```cisco
 router ospf 1
@@ -198,7 +217,7 @@ router ospf 1
  default-information originate
 ```
 
-The `203.0.113.1/32` loopback is not advertised directly through OSPF.
+The `203.0.113.1/32` loopback is not advertised as a specific OSPF route.
 
 The other routers reach it using the default route advertised by R3.
 
@@ -256,17 +275,18 @@ show ip route ospf
 
 The output confirmed that R0 learned:
 
-- The Site 2 LAN through OSPF
-- The networks between R1, R2, and R3
+- The Site 2 LAN
+- The R1–R3 network
+- The R2–R3 network
 - A default route advertised by R3
 
-The route to the Site 2 LAN used the lower-cost path through R2.
+The route to the Site 2 LAN used R2 as the next hop because the path through R2 had the lower total OSPF cost.
 
 ---
 
-### Primary Path Testing
+### Preferred Path Testing
 
-PC0 traced the path to PC1 while all links were working.
+PC0 traced the path to PC1 while all links were operational.
 
 ```text
 PC0> tracert 192.168.30.2
@@ -274,13 +294,13 @@ PC0> tracert 192.168.30.2
 
 ![Primary Path Verification](./images/04-primary-path.png)
 
-The trace confirmed that traffic used the preferred path:
+The trace confirmed that traffic followed the preferred path:
 
 ```text
 PC0 → R0 → R2 → R3 → PC1
 ```
 
-OSPF selected this path because it had a lower total cost than the path through R1.
+The path through R1 remained available but was not installed as the active route because it had a higher OSPF cost.
 
 ---
 
@@ -294,22 +314,22 @@ PC0> tracert 203.0.113.1
 
 ![Default Route Verification](./images/05-default-route.png)
 
-The trace confirmed that traffic used the OSPF default route advertised by R3.
+R0 did not have a specific route to `203.0.113.1`, so it forwarded the traffic using the default route advertised by R3.
 
-R0 did not have a specific route to `203.0.113.1`, so it used the default route.
+The trace confirmed that the traffic reached R3 through the preferred R2 path.
 
 ---
 
-### OSPF Convergence
+### Link Failure and OSPF Convergence
 
-The preferred R2–R3 link was disabled to simulate a failure.
+The R2–R3 link was disabled to simulate a failure on the preferred path.
 
 ```cisco
 interface GigabitEthernet0/0/1
  shutdown
 ```
 
-The OSPF routing table was checked again on R0.
+The OSPF routes were checked again on R0.
 
 ```cisco
 show ip route ospf
@@ -317,15 +337,15 @@ show ip route ospf
 
 ![OSPF Convergence](./images/06-ospf-convergence.png)
 
-The output confirmed that OSPF removed the failed path and installed the available route through R1.
+OSPF removed the unavailable path through R2 and installed the remaining route through R1.
 
-No manual route changes were required.
+No manual routing changes were required.
 
 ---
 
 ### Backup Path Testing
 
-PC0 traced the path to PC1 while the R2–R3 link was down.
+PC0 traced the path to PC1 while the R2–R3 link was unavailable.
 
 ```text
 PC0> tracert 192.168.30.2
@@ -333,13 +353,13 @@ PC0> tracert 192.168.30.2
 
 ![Backup Path Verification](./images/07-backup-path.png)
 
-The trace confirmed that traffic used the backup path:
+The trace confirmed that traffic followed the backup path:
 
 ```text
 PC0 → R0 → R1 → R3 → PC1
 ```
 
-PC0 and PC1 remained connected even though the preferred link was unavailable.
+The two LANs remained connected because OSPF recalculated the route and used the remaining path.
 
 ---
 
@@ -352,7 +372,7 @@ interface GigabitEthernet0/0/1
  no shutdown
 ```
 
-PC0 traced the path to PC1 again after OSPF reconverged.
+After OSPF reconverged, PC0 traced the path to PC1 again.
 
 ```text
 PC0> tracert 192.168.30.2
@@ -360,27 +380,32 @@ PC0> tracert 192.168.30.2
 
 ![Preferred Path Recovery](./images/08-preferred-path-recovery.png)
 
-The trace confirmed that traffic returned to the lower-cost path through R2.
+The trace confirmed that traffic returned to the lower-cost path:
+
+```text
+PC0 → R0 → R2 → R3 → PC1
+```
+
+This confirmed that OSPF automatically restored the preferred route after the failed link recovered.
 
 ---
 
 ## Key Takeaways
 
-- OSPF automatically discovers neighboring routers
-- OSPF learns routes to networks connected to other routers
-- Router IDs uniquely identify OSPF routers
-- Exact interface addresses can be used in OSPF `network` statements
-- A wildcard mask of `0.0.0.0` matches only the exact interface address
-- OSPF priority controls DR and BDR election
-- R0 cannot become the DR or BDR because its priority is `0`
-- Passive interfaces advertise networks without forming unnecessary neighbors
-- OSPF cost determines the preferred path
-- The lower-cost R2 path is preferred during normal operation
-- The higher-cost R1 path remains available as a backup
-- OSPF automatically changes routes when the preferred link fails
-- `default-information originate` advertises a default route
-- Routing tables show which OSPF routes are active
-- Traceroute shows the path traffic takes
+- OSPF forms neighbor relationships with other OSPF routers
+- OSPF exchanges routing information and learns remote networks
+- Router IDs uniquely identify routers within the OSPF process
+- OSPF priority controls DR and BDR election on shared networks
+- A priority of `0` prevents a router from becoming the DR or BDR
+- Passive interfaces advertise connected networks without forming neighbors
+- OSPF cost determines which available path is preferred
+- The lower-cost path through R2 is used during normal operation
+- The higher-cost path through R1 remains available as a backup
+- OSPF automatically recalculates routes after a link failure
+- OSPF returns to the preferred path after the failed link recovers
+- `default-information originate` advertises a default route into OSPF
+- Routing tables show the selected routes
+- Traceroute shows the actual path used by traffic
 
 ---
 
