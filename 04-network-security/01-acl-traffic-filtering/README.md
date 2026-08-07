@@ -2,11 +2,9 @@
 
 ## Overview
 
-This lab demonstrates how standard and extended IPv4 access control lists control traffic between multiple networks.
+This lab demonstrates how standard and extended IPv4 access control lists control traffic between networks.
 
-HR, IT, and Guest devices are placed in separate VLANs. R1 routes between the client networks and a server network running HTTP, HTTPS, and FTP.
-
-A standard ACL blocks Guest traffic from reaching HR. An extended ACL controls which server services each client network is allowed to use.
+A router connects HR, IT, Guest, and Server networks. A standard ACL blocks Guest traffic from reaching HR, while an extended ACL controls which HTTP, HTTPS, FTP, and ICMP traffic each client network can send to the server.
 
 ---
 
