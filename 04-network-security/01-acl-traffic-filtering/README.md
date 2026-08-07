@@ -2,241 +2,89 @@
 
 ## Overview
 
-This lab demonstrates how standard and extended IPv4 access control lists control traffic between multiple client networks and a protected server network.
+This lab demonstrates how standard and extended IPv4 access control lists control traffic between multiple networks.
 
-The topology contains HR, IT, Guest, and Server networks. Router-on-a-Stick provides routing for the client VLANs, while a separate router interface connects the server network.
+HR, IT, and Guest devices are placed in separate VLANs. R1 routes between the client networks and a server network running HTTP, HTTPS, and FTP.
 
-A standard ACL prevents the Guest network from reaching the HR network without blocking Guest access to other destinations. An extended ACL protects the server by permitting only approved application traffic from each client network.
+A standard ACL blocks Guest traffic from reaching HR. An extended ACL controls which server services each client network is allowed to use.
 
-The lab also demonstrates ACL placement, interface direction, wildcard masks, top-down processing, first-match behavior, implicit deny behavior, match counters, configuration mistakes, and service recovery.
+---
+
+## Objectives
+
+- Configure a standard IPv4 ACL
+- Configure an extended IPv4 ACL
+- Filter traffic by source and destination
+- Filter traffic by protocol and port
+- Apply ACLs in the correct direction
+- Verify permitted and denied traffic
+- Check ACL match counters
+- Test ACL placement and rule order
+
+---
+
+## Topology
+
+![Network Topology](./images/topology.png)
+
+R1 provides routing for the HR, IT, and Guest VLANs through Router-on-a-Stick.
+
+A separate interface on R1 connects to the server network.
 
 ---
 
 ## Network Design
 
-### VLAN and Addressing Plan
-
-| VLAN | Name | Network | Gateway | Endpoint |
+| VLAN | Name | Network | Gateway | Device |
 |---|---|---|---|---|
 | 10 | HR | `192.168.10.0/24` | `192.168.10.1` | PC-HR: `192.168.10.10` |
 | 20 | IT | `192.168.20.0/24` | `192.168.20.1` | PC-IT: `192.168.20.10` |
 | 30 | Guest | `192.168.30.0/24` | `192.168.30.1` | PC-GUEST: `192.168.30.10` |
-| 40 | Server | `192.168.40.0/24` | `192.168.40.1` | SERVER: `192.168.40.10` |
+| 40 | Server | `192.168.40.0/24` | `192.168.40.1` | Server: `192.168.40.10` |
 | 999 | Native | N/A | N/A | Unused native VLAN |
 
-### Device Addressing
-
-| Device | Interface | IP Address | Purpose |
-|---|---|---|---|
-| R1 | `G0/0.10` | `192.168.10.1/24` | HR gateway |
-| R1 | `G0/0.20` | `192.168.20.1/24` | IT gateway |
-| R1 | `G0/0.30` | `192.168.30.1/24` | Guest gateway |
-| R1 | `G0/1` | `192.168.40.1/24` | Server gateway |
-| PC-HR | NIC | `192.168.10.10/24` | HR client |
-| PC-IT | NIC | `192.168.20.10/24` | IT client |
-| PC-GUEST | NIC | `192.168.30.10/24` | Guest client |
-| SERVER | NIC | `192.168.40.10/24` | Protected server |
+The server provides HTTP, HTTPS, and FTP services for testing.
 
 ---
 
-## Security Requirements
+## Traffic Requirements
 
-### Standard ACL Requirement
+### Client Network Access
 
-The Guest network must not be allowed to communicate with the HR network.
-
-Required behavior:
-
-| Source | Destination | Expected Result |
+| Source | Destination | Result |
 |---|---|---|
 | Guest | HR | Deny |
 | Guest | IT | Permit |
-| Guest | Server | Permit, subject to the server ACL |
 | HR | IT | Permit |
 | IT | HR | Permit |
 
-Because a standard ACL matches only the source address, it must be placed close to the HR destination.
-
-### Extended ACL Requirement
-
-The server must allow only approved traffic from each client network.
+### Server Access
 
 | Source | HTTP | HTTPS | FTP | ICMP |
-|---|---:|---:|---:|---:|
+|---|---|---|---|---|
 | HR | Permit | Permit | Deny | Deny |
 | IT | Permit | Permit | Permit | Deny |
 | Guest | Permit | Deny | Deny | Deny |
 
-Traffic between the client networks must remain available unless restricted by the standard ACL.
-
 ---
 
-## Base Network Configuration
+## Baseline Testing
 
-### SW1 VLAN Configuration
+Before applying ACLs, all networks and server services were tested without restrictions.
 
-SW1 was configured with VLANs for HR, IT, Guest, and the unused native VLAN.
-
-```cisco
-vlan 10
- name HR
-
-vlan 20
- name IT
-
-vlan 30
- name GUEST
-
-vlan 999
- name NATIVE
-```
-
-The endpoint interfaces were configured as access ports.
-
-```cisco
-interface FastEthernet0/1
- description HR_CLIENT
- switchport mode access
- switchport access vlan 10
- spanning-tree portfast
-
-interface FastEthernet0/2
- description IT_CLIENT
- switchport mode access
- switchport access vlan 20
- spanning-tree portfast
-
-interface FastEthernet0/3
- description GUEST_CLIENT
- switchport mode access
- switchport access vlan 30
- spanning-tree portfast
-```
-
-The connection toward R1 was configured as an 802.1Q trunk.
-
-```cisco
-interface GigabitEthernet0/1
- description TRUNK_TO_R1
- switchport mode trunk
- switchport trunk native vlan 999
- switchport trunk allowed vlan 10,20,30,999
-```
-
----
-
-### SW2 Configuration
-
-SW2 connects the protected server to R1.
-
-```cisco
-vlan 40
- name SERVER
-
-interface FastEthernet0/1
- description SERVER
- switchport mode access
- switchport access vlan 40
- spanning-tree portfast
-
-interface GigabitEthernet0/1
- description LINK_TO_R1
- switchport mode access
- switchport access vlan 40
-```
-
----
-
-### R1 Router-on-a-Stick Configuration
-
-R1 provides the default gateways for the three client VLANs.
-
-```cisco
-interface GigabitEthernet0/0
- description TRUNK_TO_SW1
- no shutdown
-
-interface GigabitEthernet0/0.10
- description HR_GATEWAY
- encapsulation dot1Q 10
- ip address 192.168.10.1 255.255.255.0
-
-interface GigabitEthernet0/0.20
- description IT_GATEWAY
- encapsulation dot1Q 20
- ip address 192.168.20.1 255.255.255.0
-
-interface GigabitEthernet0/0.30
- description GUEST_GATEWAY
- encapsulation dot1Q 30
- ip address 192.168.30.1 255.255.255.0
-
-interface GigabitEthernet0/0.999
- description UNUSED_NATIVE_VLAN
- encapsulation dot1Q 999 native
- no ip address
-```
-
-The server network uses a separate physical interface.
-
-```cisco
-interface GigabitEthernet0/1
- description SERVER_NETWORK
- ip address 192.168.40.1 255.255.255.0
- no shutdown
-```
-
----
-
-## Server Services
-
-The Packet Tracer server was configured with:
-
-- HTTP enabled
-- HTTPS enabled
-- FTP enabled
-
-The server uses:
-
-```text
-IP Address: 192.168.40.10
-Subnet Mask: 255.255.255.0
-Default Gateway: 192.168.40.1
-```
-
-These services provide traffic targets for the extended ACL.
-
----
-
-## Baseline Connectivity
-
-Before applying any ACLs, unrestricted routing was verified.
-
-The following tests succeeded:
-
-- HR to IT
-- HR to Guest
-- HR to Server
-- IT to HR
-- IT to Guest
-- IT to Server
-- Guest to HR
-- Guest to IT
-- Guest to Server
-- HTTP access to the server
-- HTTPS access to the server
-- FTP access to the server
-- ICMP access to the server
+The clients could communicate between networks and access the server.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
-This confirmed that routing, VLANs, gateways, trunking, and server services were working before traffic filtering was introduced.
+This confirmed that the VLANs, routing, addressing, and server services were working before ACL filtering was added.
 
 ---
 
 ## Standard ACL Configuration
 
-A named standard ACL was created to block traffic sourced from the Guest network.
+The first requirement is to prevent Guest devices from reaching the HR network.
+
+A named standard ACL was created to deny traffic from the Guest subnet.
 
 ```cisco
 ip access-list standard BLOCK_GUEST_TO_HR
@@ -244,32 +92,33 @@ ip access-list standard BLOCK_GUEST_TO_HR
  permit any
 ```
 
-The wildcard mask `0.0.0.255` matches every address in the `192.168.30.0/24` network.
-
-Because the ACL cannot identify the destination, it was applied outbound on the HR subinterface.
+A standard ACL only checks the source address, so it was placed close to the HR destination.
 
 ```cisco
 interface GigabitEthernet0/0.10
  ip access-group BLOCK_GUEST_TO_HR out
 ```
 
-This placement affects traffic leaving R1 toward the HR network.
+This blocks Guest traffic only when it leaves R1 toward the HR network.
 
-Guest traffic heading toward IT or the server does not leave through this interface and is therefore not blocked by the standard ACL.
+Guest traffic toward IT or the server is not affected by this ACL.
 
 ---
 
 ## Extended ACL Configuration
 
-A named extended ACL was created to protect the server.
+The second requirement is to control access to the server.
+
+A named extended ACL was created so each client network could access only the required services.
 
 ```cisco
 ip access-list extended PROTECT_SERVER
- remark HR_WEB_ACCESS
+
+ remark HR_HTTP_AND_HTTPS
  permit tcp 192.168.10.0 0.0.0.255 host 192.168.40.10 eq 80
  permit tcp 192.168.10.0 0.0.0.255 host 192.168.40.10 eq 443
 
- remark IT_WEB_AND_FTP_ACCESS
+ remark IT_HTTP_HTTPS_AND_FTP
  permit tcp 192.168.20.0 0.0.0.255 host 192.168.40.10 eq 80
  permit tcp 192.168.20.0 0.0.0.255 host 192.168.40.10 eq 443
  permit tcp 192.168.20.0 0.0.0.255 host 192.168.40.10 eq 21
@@ -277,224 +126,96 @@ ip access-list extended PROTECT_SERVER
  remark GUEST_HTTP_ONLY
  permit tcp 192.168.30.0 0.0.0.255 host 192.168.40.10 eq 80
 
- remark BLOCK_ICMP_TO_SERVER
- deny icmp 192.168.10.0 0.0.0.255 host 192.168.40.10
- deny icmp 192.168.20.0 0.0.0.255 host 192.168.40.10
- deny icmp 192.168.30.0 0.0.0.255 host 192.168.40.10
-
- remark BLOCK_OTHER_CLIENT_ACCESS_TO_SERVER
+ remark DENY_OTHER_CLIENT_ACCESS
  deny ip 192.168.10.0 0.0.0.255 host 192.168.40.10
  deny ip 192.168.20.0 0.0.0.255 host 192.168.40.10
  deny ip 192.168.30.0 0.0.0.255 host 192.168.40.10
 
- remark ALLOW_OTHER_ROUTED_TRAFFIC
  permit ip any any
 ```
 
-The ACL was applied outbound on the server-facing interface.
+The ACL was applied outbound on the interface toward the server network.
 
 ```cisco
 interface GigabitEthernet0/1
  ip access-group PROTECT_SERVER out
 ```
 
-This placement filters traffic immediately before it enters the server network.
-
-The final `permit ip any any` preserves unrelated routed traffic that does not match the server-protection rules.
+The specific permit rules are placed before the broader deny rules because ACLs are processed from top to bottom.
 
 ---
 
 ## Verification
 
-### Standard ACL Configuration
+### Standard ACL Testing
 
-The standard ACL was verified with:
-
-```cisco
-show access-lists BLOCK_GUEST_TO_HR
-```
-
-![Standard ACL Configuration](./images/02-standard-acl-configuration.png)
-
-The output confirmed that:
-
-- Guest traffic was denied
-- Other source networks were permitted
-- Match counters increased during testing
-
----
-
-### Guest-to-HR Denial
-
-PC-GUEST attempted to ping PC-HR.
+PC-GUEST attempted to reach PC-HR.
 
 ```text
 PC-GUEST> ping 192.168.10.10
 ```
 
-![Standard ACL Deny](./images/03-standard-acl-deny.png)
+![Guest to HR Denied](./images/02-standard-acl-deny.png)
 
-The ping failed because the packet was sourced from the Guest network and left R1 through the HR subinterface.
+The ping failed as expected.
 
-The deny counter increased on the standard ACL.
-
----
-
-### Guest-to-IT Permit
-
-PC-GUEST tested connectivity to PC-IT.
+PC-GUEST then tested connectivity to PC-IT.
 
 ```text
 PC-GUEST> ping 192.168.20.10
 ```
 
-![Standard ACL Permit](./images/04-standard-acl-permit.png)
+![Guest to IT Permitted](./images/03-standard-acl-permit.png)
 
-The ping succeeded because the standard ACL was applied only on traffic leaving toward the HR network.
-
-This confirmed that the ACL placement prevented the rule from blocking Guest access to unrelated destinations.
+The ping succeeded, confirming that Guest traffic was blocked only from the HR network.
 
 ---
 
-### Extended ACL Configuration
+### Server Access Testing
 
-The server-protection ACL was verified with:
+The clients were tested against the allowed and denied server services.
 
-```cisco
-show access-lists PROTECT_SERVER
-```
+| Source | Service | Result |
+|---|---|---|
+| HR | HTTP | Permit |
+| HR | HTTPS | Permit |
+| HR | FTP | Deny |
+| IT | HTTP | Permit |
+| IT | HTTPS | Permit |
+| IT | FTP | Permit |
+| Guest | HTTP | Permit |
+| Guest | HTTPS | Deny |
+| Guest | FTP | Deny |
+| All Clients | ICMP | Deny |
 
-![Extended ACL Configuration](./images/05-extended-acl-configuration.png)
+![HTTP Testing](./images/04-http-testing.png)
 
-The output displayed each permit and deny entry along with its match counter.
+![FTP Testing](./images/05-ftp-testing.png)
 
----
+![Denied Traffic](./images/06-denied-traffic.png)
 
-### HTTP Access
-
-HR, IT, and Guest clients opened:
-
-```text
-http://192.168.40.10
-```
-
-![HTTP Permitted](./images/06-http-permitted.png)
-
-HTTP access succeeded from all three client networks because TCP port 80 was explicitly permitted.
-
----
-
-### HTTPS Access
-
-HR and IT opened:
-
-```text
-https://192.168.40.10
-```
-
-HTTPS access succeeded from HR and IT.
-
-Guest HTTPS access failed because no TCP port 443 permit entry exists for the Guest network.
-
----
-
-### FTP Access
-
-PC-IT connected to the server FTP service.
-
-```text
-PC-IT> ftp 192.168.40.10
-```
-
-![FTP Permitted](./images/07-ftp-permitted.png)
-
-The connection succeeded because TCP port 21 was explicitly permitted from the IT network.
-
-FTP attempts from HR and Guest failed.
-
-![Unauthorized Service Denied](./images/08-unauthorized-service-denied.png)
-
-These attempts matched the broader deny entries protecting the server.
-
----
-
-### ICMP Filtering
-
-Each client attempted to ping the server.
-
-```text
-ping 192.168.40.10
-```
-
-![ICMP Denied](./images/09-icmp-denied.png)
-
-All client-to-server pings failed because ICMP traffic from the three client networks was explicitly denied.
-
-The inability to ping the server did not mean every service was unavailable. Approved TCP services still worked because the ACL handled each protocol separately.
-
----
-
-### Traffic Test Results
-
-| Source | Destination | Traffic | Result |
-|---|---|---|---|
-| HR | Server | HTTP | Permit |
-| HR | Server | HTTPS | Permit |
-| HR | Server | FTP | Deny |
-| HR | Server | ICMP | Deny |
-| IT | Server | HTTP | Permit |
-| IT | Server | HTTPS | Permit |
-| IT | Server | FTP | Permit |
-| IT | Server | ICMP | Deny |
-| Guest | Server | HTTP | Permit |
-| Guest | Server | HTTPS | Deny |
-| Guest | Server | FTP | Deny |
-| Guest | Server | ICMP | Deny |
-| Guest | HR | ICMP | Deny |
-| Guest | IT | ICMP | Permit |
-| HR | IT | ICMP | Permit |
-| IT | HR | ICMP | Permit |
+The results matched the required access policy.
 
 ---
 
 ### ACL Match Counters
 
-The ACL counters were checked after running the traffic tests.
+The ACLs were checked after testing.
 
 ```cisco
 show access-lists
 ```
 
-![ACL Match Counters](./images/10-acl-match-counters.png)
+![ACL Match Counters](./images/07-acl-match-counters.png)
 
-The counters confirmed that:
+The output confirmed that traffic was matching the expected permit and deny entries.
 
-- Guest-to-HR traffic matched the standard ACL deny entry
-- HTTP traffic matched TCP port 80 permit entries
-- HTTPS traffic matched TCP port 443 permit entries
-- IT FTP traffic matched the TCP port 21 permit entry
-- ICMP traffic matched the ICMP deny entries
-- Unauthorized service attempts matched the broader deny entries
-- Unrelated routed traffic matched the final permit entry
-
----
-
-### ACL Interface Placement
-
-The interfaces were checked with:
+The interface placement was also checked.
 
 ```cisco
 show ip interface GigabitEthernet0/0.10
-```
-
-```cisco
 show ip interface GigabitEthernet0/1
 ```
-
-The output confirmed that:
-
-- `BLOCK_GUEST_TO_HR` was applied outbound on `G0/0.10`
-- `PROTECT_SERVER` was applied outbound on `G0/1`
 
 ---
 
@@ -502,161 +223,57 @@ The output confirmed that:
 
 ### Incorrect Standard ACL Placement
 
-The standard ACL was temporarily removed from the HR subinterface.
+The standard ACL was temporarily applied inbound on the Guest interface instead of outbound toward HR.
 
-```cisco
-interface GigabitEthernet0/0.10
- no ip access-group BLOCK_GUEST_TO_HR out
-```
+This caused Guest traffic to be blocked from every routed destination because the standard ACL could only see the source address.
 
-It was then applied inbound on the Guest subinterface.
+![Incorrect ACL Placement](./images/08-wrong-placement.png)
 
-```cisco
-interface GigabitEthernet0/0.30
- ip access-group BLOCK_GUEST_TO_HR in
-```
-
-![Wrong Placement Failure](./images/11-wrong-placement-failure.png)
-
-This blocked all routed traffic sourced from the Guest network, including:
-
-- Guest to HR
-- Guest to IT
-- Guest to Server
-
-The ACL blocked too much because a standard ACL cannot identify the destination.
-
-The incorrect application was removed.
-
-```cisco
-interface GigabitEthernet0/0.30
- no ip access-group BLOCK_GUEST_TO_HR in
-```
-
-The ACL was restored outbound on the HR subinterface.
-
-```cisco
-interface GigabitEthernet0/0.10
- ip access-group BLOCK_GUEST_TO_HR out
-```
-
-Guest access to IT and permitted server services recovered, while Guest access to HR remained blocked.
+The ACL was moved back to the HR-facing interface, restoring Guest access to IT and permitted server services.
 
 ---
 
-### Incorrect ACL Direction
+### Rule Order
 
-The extended ACL was temporarily removed from the outbound direction.
-
-```cisco
-interface GigabitEthernet0/1
- no ip access-group PROTECT_SERVER out
-```
-
-It was then applied inbound on the server-facing interface.
+A broad Guest permit was temporarily placed above the more specific server restrictions.
 
 ```cisco
-interface GigabitEthernet0/1
- ip access-group PROTECT_SERVER in
+permit ip 192.168.30.0 0.0.0.255 host 192.168.40.10
 ```
 
-The intended client-to-server traffic was no longer filtered because client packets enter R1 through the client subinterfaces and leave through `G0/1`.
+Guest HTTPS and FTP traffic became allowed because ACL processing stopped at the first matching rule.
 
-The ACL was inspecting traffic entering R1 from the server network instead.
-
-The incorrect application was removed.
-
-```cisco
-interface GigabitEthernet0/1
- no ip access-group PROTECT_SERVER in
-```
-
-The ACL was restored in the outbound direction.
-
-```cisco
-interface GigabitEthernet0/1
- ip access-group PROTECT_SERVER out
-```
-
-The required server filtering returned.
-
----
-
-### First-Match Processing
-
-A broad permit entry was temporarily placed before the Guest HTTPS restriction.
-
-```cisco
-ip access-list extended PROTECT_SERVER
- 5 permit ip 192.168.30.0 0.0.0.255 host 192.168.40.10
-```
-
-![Rule Order Failure](./images/12-rule-order-failure.png)
-
-Guest HTTPS and FTP traffic was permitted because the broad entry matched before the packet reached the later restrictions.
-
-The packet was not evaluated against any remaining entries after the first match.
-
-The incorrect rule was removed.
-
-```cisco
-ip access-list extended PROTECT_SERVER
- no 5
-```
-
-Guest access was tested again, and only HTTP remained available.
+The broad permit was removed, restoring the intended HTTP-only access.
 
 ---
 
 ### Implicit Deny
 
-The final broader permit entry was temporarily removed.
+The final permit rule was temporarily removed.
 
 ```cisco
-ip access-list extended PROTECT_SERVER
- no permit ip any any
+permit ip any any
 ```
 
-Traffic that did not match an earlier permit entry was blocked by the implicit deny at the end of the ACL.
+Traffic that did not match an earlier permit was blocked by the implicit deny at the end of the ACL.
 
-This affected unrelated traffic that was not intended to be part of the server restriction.
+The rule was restored and normal traffic recovered.
 
-The final permit was restored.
-
-```cisco
-ip access-list extended PROTECT_SERVER
- permit ip any any
-```
-
-![Service Recovery](./images/13-service-recovery.png)
-
-Approved services and unrelated routed traffic recovered after the rule was restored.
+![ACL Recovery](./images/09-acl-recovery.png)
 
 ---
 
 ## Key Takeaways
 
-- Standard ACLs match only the source IPv4 address
-- Extended ACLs can match source, destination, protocol, and port
-- Standard ACLs are normally placed close to the destination
-- Extended ACLs are normally placed close to the source when practical
-- Interface direction is evaluated from the router’s perspective
-- Inbound ACLs filter packets as they enter an interface
-- Outbound ACLs filter packets before they leave an interface
-- Wildcard masks determine which address bits must match
-- A wildcard mask of `0.0.0.255` matches an entire `/24` network
-- ACLs are processed from top to bottom
-- The first matching entry determines the result
-- Later entries are not evaluated after a match
-- Narrow rules must be placed before broad rules
+- Standard ACLs filter mainly by source address
+- Extended ACLs can filter by source, destination, protocol, and port
+- Standard ACL placement matters because they cannot see the destination
+- ACL direction is based on traffic entering or leaving a router interface
+- ACL entries are processed from top to bottom
+- The first matching rule determines what happens to the packet
 - Every ACL ends with an implicit deny
-- A final permit may be required to preserve unrelated traffic
-- ACL match counters help prove which entries processed traffic
-- Successful ping tests do not prove that application services are allowed
-- Failed ping tests do not prove that every application service is blocked
-- Baseline testing should be completed before ACLs are applied
-- Incorrect ACL placement can block more traffic than intended
-- Removing or correcting an ACL entry can restore service without rebuilding the network
+- Match counters help verify which ACL entries are being used
+- Baseline testing helps separate ACL problems from routing problems
 
 ---
 
@@ -665,8 +282,7 @@ Approved services and unrelated routed traffic recovered after the rule was rest
 - Cisco Packet Tracer
 - Cisco IOS
 - IPv4
-- Standard IPv4 ACLs
-- Extended IPv4 ACLs
+- Standard and extended ACLs
 - Router-on-a-Stick
 - HTTP
 - HTTPS
