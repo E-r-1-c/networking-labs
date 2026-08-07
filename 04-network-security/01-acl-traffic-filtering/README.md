@@ -2,22 +2,26 @@
 
 ## Overview
 
-This lab demonstrates how standard and extended IPv4 access control lists control traffic between networks.
+This lab demonstrates how standard and extended IPv4 access control lists control traffic between multiple client networks and a protected server network.
 
-A router connects HR, IT, Guest, and Server networks. A standard ACL blocks Guest traffic from reaching HR, while an extended ACL controls which HTTP, HTTPS, FTP, and ICMP traffic each client network can send to the server.
+HR, IT, and Guest devices connect through separate VLANs. R1 provides inter-VLAN routing and connects the client networks to a server running HTTP, HTTPS, and FTP services.
+
+A standard ACL prevents Guest devices from reaching the HR network. An extended ACL allows each client network to access only the approved services on the server.
 
 ---
 
 ## Objectives
 
-- Configure a standard IPv4 ACL
-- Configure an extended IPv4 ACL
-- Filter traffic by source and destination
-- Filter traffic by protocol and port
+- Configure standard and extended IPv4 ACLs
+- Match traffic using source and destination addresses
+- Filter traffic by protocol and TCP port
 - Apply ACLs in the correct direction
+- Demonstrate standard ACL placement
+- Verify ACL configuration and interface attachment
 - Verify permitted and denied traffic
-- Check ACL match counters
-- Test ACL placement and rule order
+- Inspect ACL match counters
+- Demonstrate first-match and implicit deny behavior
+- Test failure and recovery after ACL mistakes
 
 ---
 
@@ -25,29 +29,29 @@ A router connects HR, IT, Guest, and Server networks. A standard ACL blocks Gues
 
 ![Network Topology](./images/topology.png)
 
-R1 provides routing for the HR, IT, and Guest VLANs through Router-on-a-Stick.
-
-A separate interface on R1 connects to the server network.
+R1 uses Router-on-a-Stick for the HR, IT, and Guest VLANs. A separate physical interface connects the server network.
 
 ---
 
 ## Network Design
 
-| VLAN | Name | Network | Gateway | Device |
+| VLAN | Name | Network | Gateway | Endpoint |
 |---|---|---|---|---|
 | 10 | HR | `192.168.10.0/24` | `192.168.10.1` | PC-HR: `192.168.10.10` |
 | 20 | IT | `192.168.20.0/24` | `192.168.20.1` | PC-IT: `192.168.20.10` |
 | 30 | Guest | `192.168.30.0/24` | `192.168.30.1` | PC-GUEST: `192.168.30.10` |
-| 40 | Server | `192.168.40.0/24` | `192.168.40.1` | Server: `192.168.40.10` |
+| 40 | Server | `192.168.40.0/24` | `192.168.40.1` | SERVER: `192.168.40.10` |
 | 999 | Native | N/A | N/A | Unused native VLAN |
 
-The server provides HTTP, HTTPS, and FTP services for testing.
+The server provides HTTP, HTTPS, and FTP services for ACL testing.
 
 ---
 
-## Traffic Requirements
+## Security Requirements
 
-### Client Network Access
+### Client Network Filtering
+
+The Guest network must not be allowed to reach the HR network.
 
 | Source | Destination | Result |
 |---|---|---|
@@ -59,30 +63,28 @@ The server provides HTTP, HTTPS, and FTP services for testing.
 ### Server Access
 
 | Source | HTTP | HTTPS | FTP | ICMP |
-|---|---|---|---|---|
+|---|---:|---:|---:|---:|
 | HR | Permit | Permit | Deny | Deny |
 | IT | Permit | Permit | Permit | Deny |
 | Guest | Permit | Deny | Deny | Deny |
 
 ---
 
-## Baseline Testing
+## Baseline Connectivity
 
-Before applying ACLs, all networks and server services were tested without restrictions.
+Before applying ACLs, routing and server connectivity were tested without restrictions.
 
-The clients could communicate between networks and access the server.
+The client networks could communicate with each other, ping the server, and access its enabled services.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
-This confirmed that the VLANs, routing, addressing, and server services were working before ACL filtering was added.
+This confirmed that any later failures were caused by ACL filtering rather than an addressing, VLAN, trunking, routing, or server problem.
 
 ---
 
 ## Standard ACL Configuration
 
-The first requirement is to prevent Guest devices from reaching the HR network.
-
-A named standard ACL was created to deny traffic from the Guest subnet.
+A named standard ACL was created to block traffic sourced from the Guest network.
 
 ```cisco
 ip access-list standard BLOCK_GUEST_TO_HR
@@ -90,28 +92,79 @@ ip access-list standard BLOCK_GUEST_TO_HR
  permit any
 ```
 
-A standard ACL only checks the source address, so it was placed close to the HR destination.
+Because a standard ACL matches only the source address, it was placed close to the HR destination.
 
 ```cisco
 interface GigabitEthernet0/0.10
  ip access-group BLOCK_GUEST_TO_HR out
 ```
 
-This blocks Guest traffic only when it leaves R1 toward the HR network.
+Applying the ACL outbound on the HR subinterface blocks Guest traffic only when it is leaving R1 toward the HR network.
 
-Guest traffic toward IT or the server is not affected by this ACL.
+Guest traffic toward IT and the server leaves through different interfaces and is not affected by this ACL.
+
+---
+
+## Standard ACL Verification
+
+### ACL Rules
+
+The standard ACL was checked on R1.
+
+```cisco
+show access-lists BLOCK_GUEST_TO_HR
+```
+
+![Standard ACL Configuration](./images/02-standard-acl-config.png)
+
+The output confirmed that the Guest subnet was denied and all other source addresses were permitted.
+
+---
+
+### ACL Interface Attachment
+
+The HR subinterface was checked to verify that the ACL was attached in the correct direction.
+
+```cisco
+show ip interface GigabitEthernet0/0.10
+```
+
+![Standard ACL Interface](./images/03-standard-acl-interface.png)
+
+The output confirmed that `BLOCK_GUEST_TO_HR` was applied outbound.
+
+---
+
+### Traffic Testing
+
+PC-GUEST attempted to reach PC-HR.
+
+```text
+PC-GUEST> ping 192.168.10.10
+```
+
+![Guest-to-HR Denied](./images/04-standard-acl-deny.png)
+
+The ping failed because the packet matched the Guest deny entry.
+
+PC-GUEST then tested connectivity to PC-IT.
+
+```text
+PC-GUEST> ping 192.168.20.10
+```
+
+![Guest-to-IT Permitted](./images/05-standard-acl-permit.png)
+
+The ping succeeded, confirming that the standard ACL blocked only traffic leaving toward the HR network.
 
 ---
 
 ## Extended ACL Configuration
 
-The second requirement is to control access to the server.
-
-A named extended ACL was created so each client network could access only the required services.
+A named extended ACL was created to protect the server.
 
 ```cisco
 ip access-list extended PROTECT_SERVER
-
  remark HR_HTTP_AND_HTTPS
  permit tcp 192.168.10.0 0.0.0.255 host 192.168.40.10 eq 80
  permit tcp 192.168.10.0 0.0.0.255 host 192.168.40.10 eq 443
@@ -124,96 +177,108 @@ ip access-list extended PROTECT_SERVER
  remark GUEST_HTTP_ONLY
  permit tcp 192.168.30.0 0.0.0.255 host 192.168.40.10 eq 80
 
- remark DENY_OTHER_CLIENT_ACCESS
+ remark DENY_OTHER_CLIENT_ACCESS_TO_SERVER
  deny ip 192.168.10.0 0.0.0.255 host 192.168.40.10
  deny ip 192.168.20.0 0.0.0.255 host 192.168.40.10
  deny ip 192.168.30.0 0.0.0.255 host 192.168.40.10
 
+ remark ALLOW_UNRELATED_TRAFFIC
  permit ip any any
 ```
 
-The ACL was applied outbound on the interface toward the server network.
+The ACL was applied outbound on the server-facing interface.
 
 ```cisco
 interface GigabitEthernet0/1
  ip access-group PROTECT_SERVER out
 ```
 
-The specific permit rules are placed before the broader deny rules because ACLs are processed from top to bottom.
+This filters traffic immediately before it enters the server network.
+
+The specific permit entries appear before the broader deny entries because ACLs use top-down, first-match processing.
 
 ---
 
-## Verification
+## Extended ACL Verification
 
-### Standard ACL Testing
+### ACL Rules
 
-PC-GUEST attempted to reach PC-HR.
+The extended ACL was checked on R1.
 
-```text
-PC-GUEST> ping 192.168.10.10
+```cisco
+show access-lists PROTECT_SERVER
 ```
 
-![Guest to HR Denied](./images/02-standard-acl-deny.png)
+![Extended ACL Configuration](./images/06-extended-acl-config.png)
 
-The ping failed as expected.
+The output confirmed that the service-specific permit entries and broader deny entries were installed in the intended order.
 
-PC-GUEST then tested connectivity to PC-IT.
+---
 
-```text
-PC-GUEST> ping 192.168.20.10
+### ACL Interface Attachment
+
+The server-facing interface was checked to verify where the ACL was applied.
+
+```cisco
+show ip interface GigabitEthernet0/1
 ```
 
-![Guest to IT Permitted](./images/03-standard-acl-permit.png)
+![Extended ACL Interface](./images/07-extended-acl-interface.png)
 
-The ping succeeded, confirming that Guest traffic was blocked only from the HR network.
+The output confirmed that `PROTECT_SERVER` was applied outbound toward the server network.
 
 ---
 
 ### Server Access Testing
 
-The clients were tested against the allowed and denied server services.
-
-| Source | Service | Result |
+| Source | Traffic | Result |
 |---|---|---|
 | HR | HTTP | Permit |
 | HR | HTTPS | Permit |
 | HR | FTP | Deny |
+| HR | ICMP | Deny |
 | IT | HTTP | Permit |
 | IT | HTTPS | Permit |
 | IT | FTP | Permit |
+| IT | ICMP | Deny |
 | Guest | HTTP | Permit |
 | Guest | HTTPS | Deny |
 | Guest | FTP | Deny |
-| All Clients | ICMP | Deny |
+| Guest | ICMP | Deny |
 
-![HTTP Testing](./images/04-http-testing.png)
+![HTTP Access Permitted](./images/08-http-permitted.png)
 
-![FTP Testing](./images/05-ftp-testing.png)
+HTTP access succeeded from HR, IT, and Guest because TCP port 80 was explicitly permitted.
 
-![Denied Traffic](./images/06-denied-traffic.png)
+![FTP Access Testing](./images/09-ftp-testing.png)
 
-The results matched the required access policy.
+FTP succeeded from IT but failed from HR and Guest.
+
+![Unauthorized Traffic Denied](./images/10-unauthorized-traffic-denied.png)
+
+HTTPS from Guest and ICMP from all client networks were denied by the broader server-protection entries.
 
 ---
 
 ### ACL Match Counters
 
-The ACLs were checked after testing.
+The ACL entries and match counters were checked after testing.
 
 ```cisco
 show access-lists
 ```
 
-![ACL Match Counters](./images/07-acl-match-counters.png)
+![ACL Match Counters](./images/11-acl-match-counters.png)
 
-The output confirmed that traffic was matching the expected permit and deny entries.
+The output confirmed that:
 
-The interface placement was also checked.
+- Guest-to-HR traffic matched the standard ACL deny entry
+- HTTP and HTTPS traffic matched the correct TCP permit entries
+- IT FTP traffic matched the TCP port 21 permit entry
+- Unauthorized traffic matched the broader deny entries
+- Unrelated traffic matched the final permit entry
 
-```cisco
-show ip interface GigabitEthernet0/0.10
-show ip interface GigabitEthernet0/1
-```
+The counters provide direct evidence that the tested traffic was processed by the expected ACL rules.
 
 ---
 
@@ -221,56 +286,69 @@ show ip interface GigabitEthernet0/1
 
 ### Incorrect Standard ACL Placement
 
-The standard ACL was temporarily applied inbound on the Guest interface instead of outbound toward HR.
+The standard ACL was temporarily applied inbound on the Guest subinterface.
 
-This caused Guest traffic to be blocked from every routed destination because the standard ACL could only see the source address.
+```cisco
+interface GigabitEthernet0/0.30
+ ip access-group BLOCK_GUEST_TO_HR in
+```
 
-![Incorrect ACL Placement](./images/08-wrong-placement.png)
+![Incorrect ACL Placement](./images/12-wrong-placement.png)
 
-The ACL was moved back to the HR-facing interface, restoring Guest access to IT and permitted server services.
+Because the ACL matched only the Guest source network, this placement blocked Guest traffic toward HR, IT, and the server.
+
+The ACL was removed from the Guest subinterface and restored outbound on the HR subinterface.
+
+Guest access to IT and permitted server services recovered while Guest access to HR remained blocked.
 
 ---
 
-### Rule Order
+### First-Match Processing
 
-A broad Guest permit was temporarily placed above the more specific server restrictions.
+A broad Guest permit was temporarily placed above the more specific restrictions.
 
 ```cisco
-permit ip 192.168.30.0 0.0.0.255 host 192.168.40.10
+ip access-list extended PROTECT_SERVER
+ 5 permit ip 192.168.30.0 0.0.0.255 host 192.168.40.10
 ```
 
-Guest HTTPS and FTP traffic became allowed because ACL processing stopped at the first matching rule.
+Guest HTTPS and FTP traffic became permitted because the packet matched this entry before reaching the later deny rules.
 
-The broad permit was removed, restoring the intended HTTP-only access.
+The broad permit was removed, restoring the intended HTTP-only Guest access.
 
 ---
 
 ### Implicit Deny
 
-The final permit rule was temporarily removed.
+The final permit entry was temporarily removed.
 
 ```cisco
-permit ip any any
+ip access-list extended PROTECT_SERVER
+ no permit ip any any
 ```
 
 Traffic that did not match an earlier permit was blocked by the implicit deny at the end of the ACL.
 
-The rule was restored and normal traffic recovered.
+The final permit was restored, and unrelated routed traffic recovered.
 
-![ACL Recovery](./images/09-acl-recovery.png)
+![ACL Recovery](./images/13-acl-recovery.png)
 
 ---
 
 ## Key Takeaways
 
-- Standard ACLs filter mainly by source address
-- Extended ACLs can filter by source, destination, protocol, and port
-- Standard ACL placement matters because they cannot see the destination
-- ACL direction is based on traffic entering or leaving a router interface
+- Standard ACLs match only the source IPv4 address
+- Extended ACLs can match source, destination, protocol, and port
+- Standard ACLs are normally placed close to the destination
+- ACL direction is determined from the router’s perspective
+- `show access-lists` verifies ACL rules and match counters
+- `show ip interface` verifies where an ACL is attached and in which direction
 - ACL entries are processed from top to bottom
-- The first matching rule determines what happens to the packet
+- The first matching entry determines the result
+- Specific entries must appear before broader entries
 - Every ACL ends with an implicit deny
-- Match counters help verify which ACL entries are being used
+- A final permit may be required to preserve unrelated traffic
+- Incorrect ACL placement can block more traffic than intended
 - Baseline testing helps separate ACL problems from routing problems
 
 ---
