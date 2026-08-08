@@ -2,9 +2,10 @@
 
 ## Overview
 
-This lab demonstrates how VLANs divide a switched network into separate Layer 2 broadcast domains and how 802.1Q trunks carry multiple VLANs between switches.
+This lab demonstrates how VLANs separate devices into different Layer 2 broadcast domains and how 802.1Q trunking allows traffic from multiple VLANs to travel across a single link between switches.
 
-A multi-switch topology was built with devices assigned to separate VLANs. The trunk links allow devices in the same VLAN to communicate across switches while keeping different VLANs isolated until Layer 3 routing is added.
+A multi-switch topology was built with devices assigned to separate VLANs. The trunk link carries multiple VLANs between the switches, allowing devices in the same VLAN to communicate while keeping different VLANs isolate duntil Layer 3 routing is added.
+
 
 ---
 
