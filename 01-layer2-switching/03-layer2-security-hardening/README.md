@@ -2,7 +2,7 @@
 
 ## Overview
 
-This lab shows how Port Security controls which devices can use an access port and how DHCP Snooping blocks DHCP responses from unauthorized servers.
+This lab shows how Port Security controls which devices can use a switch port and how DHCP Snooping blocks DHCP responses from unauthorized servers.
 
 A single-switch topology was built with one authorized user, one legitimate DHCP server, and one rogue DHCP server. Port Security protects the user port, while DHCP Snooping allows server responses only through the trusted interface.
 
