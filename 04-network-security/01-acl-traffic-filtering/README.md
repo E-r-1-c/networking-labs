@@ -465,29 +465,19 @@ The successful IT ping and failed HR ping confirmed that the ACL was once again 
 
 ## First-Match Processing
 
-ACL entries are processed from top to bottom.
+ACLs are processed from top to bottom, and the first matching entry determines what happens to the packet.
 
-A broader permit placed above a more specific restriction can allow traffic before the packet reaches the intended deny entry.
-
-The ACL order was tested and then restored so the required service rules were processed correctly.
+This means a broader permit placed above a more specific deny can unintentionally allow traffic that should have been blocked. More specific rules should be placed before broader rules so packets reach the intended entry.
 
 ---
 
 ## Implicit Deny
 
-Every ACL contains an implicit deny at the end.
+Every ACL ends with an implicit deny.
 
-The final:
+Any traffic that does not match an earlier permit is blocked automatically, even if no explicit deny statement appears in the configuration.
 
-```cisco
-permit ip any any
-```
-
-entry was temporarily removed to demonstrate what happens to traffic that does not match an earlier permit.
-
-Unrelated routed traffic became blocked by the implicit deny.
-
-The permit entry was restored and normal connectivity recovered.
+Because of this, a final `permit ip any any` may be needed when the ACL is intended to filter only specific traffic while allowing unrelated routed traffic to continue.
 
 ---
 
