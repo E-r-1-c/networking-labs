@@ -2,12 +2,12 @@
 
 ## Overview
 
-This lab compares two methods of routing traffic between VLANs:
+This lab demonstrates two methods of routing traffic between VLANs so devices in separate Layer 2 networks can communicate:
 
-- **Router-on-a-Stick (ROAS)** using router subinterfaces
-- **Switch Virtual Interfaces (SVIs)** on a multilayer switch
+- Router-on-a-Stick (ROAS) using router subinterfaces over an 802.1Q trunk
+- Switch Virtual Interfaces (SVIs) using Layer 3 interfaces on a multilayer switch
 
-Two disconnected networks were built. Both use the same VLANs and addressing plan so each method can be configured and tested independently.
+Two disconnected networks were built using the same VLANs and addressing plan. One network uses Router-on-a-Stick, while the other uses SVIs, allowing each method to be configured and tested separately. Because the networks are not connected, the same VLAN IDs and IP addresses can be used in both without causing conflicts.
 
 ---
 
