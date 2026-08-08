@@ -2,7 +2,7 @@
 
 ## Overview
 
-This lab demonstrates how Spanning Tree Protocol prevents Layer 2 loops in a switched network with redundant links.
+This lab demonstrates how Spanning Tree Protocol prevents Layer 2 loops when redundant links exist between switches.
 
 Rapid PVST+ was configured across a three-switch topology. Root bridge selection was controlled for VLANs 10 and 20, while PortFast and BPDU Guard were applied to access ports to protect the spanning-tree topology.
 
