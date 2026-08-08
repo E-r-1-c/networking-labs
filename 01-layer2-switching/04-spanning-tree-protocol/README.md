@@ -54,7 +54,14 @@ spanning-tree vlan 10,20 root secondary
 
 PortFast and BPDU Guard were enabled on the SW2 access ports connected to end devices.
 
-PortFast allowed the access ports to transition directly to forwarding, while BPDU Guard protected the topology by disabling a protected port if unexpected BPDU traffic was received.
+```cisco
+interface range FastEthernet0/1 - 2
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+```
+
+PortFast allows the access ports to begin forwarding immediately, while BPDU Guard disables a port if it receives an unexpected BPDU.
+
 
 ---
 
