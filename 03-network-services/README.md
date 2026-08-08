@@ -1,6 +1,6 @@
 # Network Services
 
-Hands-on Cisco networking labs covering DHCP, network monitoring, time synchronization, configuration backups, file transfer, and default gateway redundancy. This section focuses on how network services support end devices, centralize management, and maintain important network functions during failures.
+Hands-on Cisco networking labs covering addressing services, infrastructure monitoring, name resolution, and default gateway redundancy. This section focuses on the services that support network operation beyond basic switching and routing.
 
 ---
 
@@ -11,8 +11,8 @@ Hands-on Cisco networking labs covering DHCP, network monitoring, time synchroni
 * NTP time synchronization
 * Centralized Syslog collection
 * SNMP monitoring and device information
-* Configuration backup and restoration
-* TFTP and other file-transfer services
+* DNS name resolution
+* Centralized network services
 * HSRP virtual default gateways
 * Gateway failover and recovery
 * Service verification and troubleshooting
@@ -25,7 +25,7 @@ Hands-on Cisco networking labs covering DHCP, network monitoring, time synchroni
 | :--- | :--- |
 | **01 — DHCP Server & Relay** | Configure centralized DHCP services and use DHCP relay to provide addresses to clients on remote networks. |
 | **02 — NTP, Syslog & SNMP** | Configure time synchronization, centralized logging, and network monitoring across Cisco devices. |
-| **03 — Configuration Backup & File Transfer** | Back up, transfer, and restore Cisco device configurations using a centralized server. |
+| **03 — DNS Name Resolution** | Configure centralized DNS services and verify name resolution from clients across routed networks. |
 | **04 — HSRP Default Gateway Redundancy** | Configure a shared virtual gateway and test automatic failover between active and standby routers. |
 
 ---
