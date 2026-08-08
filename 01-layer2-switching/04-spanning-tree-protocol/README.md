@@ -55,7 +55,7 @@ spanning-tree vlan 10,20 root secondary
 PortFast and BPDU Guard were enabled on the SW2 access ports connected to end devices.
 
 ```cisco
-interface range FastEthernet0/1 - 2
+interface range FastEthernet0/3 - 4
  spanning-tree portfast
  spanning-tree bpduguard enable
 ```
