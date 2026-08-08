@@ -416,15 +416,50 @@ This provided direct verification that the ACL rules, rather than another networ
 
 ## Incorrect Standard ACL Placement
 
-The standard ACL was temporarily moved close to the Guest source instead of remaining near the HR destination.
+The standard ACL was temporarily moved from the HR subinterface and applied inbound on the Guest subinterface.
 
-Because the ACL could identify only the source address, Guest traffic toward multiple destinations became blocked.
+```cisco
+interface GigabitEthernet0/0.10
+ no ip access-group BLOCK_GUEST_TO_HR out
+
+interface GigabitEthernet0/0.30
+ ip access-group BLOCK_GUEST_TO_HR in
+```
+
+Because a standard ACL matches only the source address, placing it close to the Guest source caused all Guest traffic entering R0 to match the deny entry.
+
+PC-GUEST then attempted to reach the IT network.
+
+```text
+PC-GUEST> ping 192.168.20.10
+```
 
 ![Incorrect ACL Placement](./images/14-wrong-placement.png)
 
-The ACL was returned to the HR subinterface in the outbound direction.
+The ping failed even though Guest-to-IT traffic should normally be permitted.
 
-Guest access to permitted networks recovered while Guest access to HR remained blocked.
+This demonstrated why a standard ACL should be placed close to the destination when the goal is to block a source from reaching only one specific network.
+
+The ACL was then removed from the Guest subinterface and restored outbound on the HR subinterface.
+
+```cisco
+interface GigabitEthernet0/0.30
+ no ip access-group BLOCK_GUEST_TO_HR in
+
+interface GigabitEthernet0/0.10
+ ip access-group BLOCK_GUEST_TO_HR out
+```
+
+After restoring the correct placement, PC-GUEST could reach IT again while access to HR remained blocked.
+
+```text
+PC-GUEST> ping 192.168.20.10
+PC-GUEST> ping 192.168.10.10
+```
+
+![ACL Recovery](./images/15-acl-recovery.png)
+
+The successful IT ping and failed HR ping confirmed that the ACL was once again filtering only the intended destination.
 
 ---
 
@@ -453,8 +488,6 @@ entry was temporarily removed to demonstrate what happens to traffic that does n
 Unrelated routed traffic became blocked by the implicit deny.
 
 The permit entry was restored and normal connectivity recovered.
-
-![ACL Recovery](./images/15-acl-recovery.png)
 
 ---
 
