@@ -1,39 +1,253 @@
 # NTP, Syslog & SNMP
 
-This folder is reserved for a future network services lab covering centralized time synchronization, logging, and device monitoring.
+## Overview
 
-The completed lab will configure Cisco routers and switches to use a centralized management server for NTP, Syslog, and SNMP services.
+This lab shows how NTP, Syslog, and SNMP provide centralized time synchronization, event logging, and network monitoring.
 
----
-
-## Planned Focus Areas
-
-- Configure IP connectivity between network devices and the management server
-- Synchronize router and switch clocks with NTP
-- Verify NTP associations and device time
-- Send Cisco IOS log messages to a centralized Syslog server
-- Generate and verify test log messages
-- Configure SNMP community strings
-- Allow the management server to query network devices
-- Verify SNMP communication and device information
-- Test service failure and recovery
+A router and two switches connect to a management server. NTP keeps device clocks synchronized, Syslog sends device events to a central location, and SNMP allows network information to be monitored remotely.
 
 ---
 
-## Planned Lab Structure
+## Objectives
 
-The completed lab will include:
+- Configure centralized NTP time synchronization
+- Configure Syslog forwarding to a management server
+- Configure SNMP monitoring on Cisco devices
+- Verify NTP synchronization and server associations
+- Generate and verify Syslog events
+- Verify SNMP communication with network devices
+- Demonstrate centralized infrastructure management
+- Test NTP failure and recovery
 
-- Project overview
-- Network topology
-- Addressing design
-- NTP configuration and verification
-- Syslog configuration and verification
-- SNMP configuration and verification
-- Connectivity testing
-- Failure and recovery testing
-- Screenshots
-- Key takeaways
+---
+
+## Topology
+
+![Network Topology](./images/topology.png)
+
+R0, SW0, and SW1 are managed from a centralized server providing NTP, Syslog, and SNMP services.
+
+---
+
+## Network Design
+
+| Device | Role | Management Address |
+|---|---|---|
+| R0 | Router | Management IP |
+| SW0 | Switch | Management IP |
+| SW1 | Switch | Management IP |
+| Management Server | NTP, Syslog, SNMP | Server IP |
+
+All managed devices must have IP connectivity to the management server before the network services are configured.
+
+---
+
+## Management Services
+
+| Service | Purpose |
+|---|---|
+| NTP | Synchronizes time across network devices |
+| Syslog | Sends device events and system messages to a central server |
+| SNMP | Allows network information and device status to be monitored remotely |
+
+Together, these services provide a centralized view of network infrastructure instead of requiring each device to be managed independently.
+
+---
+
+## Baseline Connectivity
+
+Before configuring the management services, connectivity to the management server was verified from each network device.
+
+This confirmed that any later service failures were related to NTP, Syslog, or SNMP configuration rather than basic network connectivity.
+
+![Baseline Connectivity](./images/01-baseline-connectivity.png)
+
+---
+
+## NTP Configuration
+
+R0, SW0, and SW1 were configured to use the management server as their NTP source.
+
+The goal was to maintain consistent time across all network devices.
+
+Accurate time is important because timestamps are used by logs, troubleshooting tools, and other network operations.
+
+Example configuration:
+
+```cisco
+ntp server <NTP-SERVER-IP>
+```
+
+The same NTP server was configured on each managed device.
+
+---
+
+## Syslog Configuration
+
+R0, SW0, and SW1 were configured to send Syslog messages to the management server.
+
+Example configuration:
+
+```cisco
+logging <SYSLOG-SERVER-IP>
+```
+
+Centralized logging allows events from multiple devices to be viewed from one location rather than checking the local log on each device individually.
+
+---
+
+## SNMP Configuration
+
+SNMP was configured on the network devices so the management system could retrieve device information remotely.
+
+The configuration allows the management server to monitor information such as device identity, interfaces, and operational status.
+
+Example configuration:
+
+```cisco
+snmp-server community <COMMUNITY> ro
+```
+
+Read-only access was used so the management system could retrieve information without modifying device configuration.
+
+---
+
+# Verification
+
+## NTP Verification
+
+NTP operation was verified on the managed devices.
+
+```cisco
+show ntp associations
+show ntp status
+show clock
+```
+
+![NTP Verification](./images/02-ntp-verification.png)
+
+The output confirmed that the device had formed an association with the configured NTP server and synchronized its clock.
+
+---
+
+## Syslog Configuration Verification
+
+The configured Syslog destination was verified on the network devices.
+
+![Syslog Configuration](./images/03-syslog-config.png)
+
+This confirmed that device messages were configured to be sent to the centralized management server.
+
+---
+
+## Syslog Event Testing
+
+A network event was generated by temporarily changing the state of an interface.
+
+```cisco
+interface <INTERFACE>
+ shutdown
+ no shutdown
+```
+
+The management server was then checked for the resulting Syslog messages.
+
+![Syslog Event](./images/04-syslog-event.png)
+
+The server received the interface state-change messages, confirming that device events were being forwarded successfully.
+
+---
+
+## SNMP Verification
+
+SNMP communication between the management server and the network devices was tested.
+
+![SNMP Verification](./images/05-snmp-verification.png)
+
+The management system successfully retrieved information from the configured devices.
+
+This confirmed that SNMP provided remote visibility into the network infrastructure.
+
+---
+
+## Centralized Management
+
+The completed configuration allowed the management server to provide three separate infrastructure-management functions:
+
+```text
+NTP
+├── R0
+├── SW0
+└── SW1
+
+Syslog
+├── R0
+├── SW0
+└── SW1
+
+SNMP
+├── R0
+├── SW0
+└── SW1
+```
+
+![Management Services](./images/06-management-services.png)
+
+NTP maintained consistent time, Syslog centralized network events, and SNMP provided remote device monitoring.
+
+---
+
+# Failure and Recovery Testing
+
+## NTP Failure
+
+Connectivity between a managed device and the NTP server was temporarily interrupted.
+
+The NTP status and association were checked again.
+
+```cisco
+show ntp associations
+show ntp status
+```
+
+![NTP Failure](./images/07-ntp-failure.png)
+
+The device could no longer maintain normal communication with its configured time source.
+
+This demonstrated that NTP synchronization depends on reachability between the network device and the NTP server.
+
+---
+
+## NTP Recovery
+
+Connectivity to the management server was restored.
+
+The NTP status was checked again after communication with the server resumed.
+
+```cisco
+show ntp associations
+show ntp status
+show clock
+```
+
+![NTP Recovery](./images/08-ntp-recovery.png)
+
+The NTP association recovered and the device was again able to synchronize with the configured server.
+
+---
+
+## Key Takeaways
+
+- NTP provides consistent time across network infrastructure
+- Accurate timestamps are important for logging and troubleshooting
+- Syslog centralizes device events and system messages
+- Centralized logging makes it easier to correlate events across multiple devices
+- SNMP provides remote visibility into network device information and status
+- Read-only SNMP access allows monitoring without permitting configuration changes
+- Management services depend on basic IP connectivity to the management server
+- NTP, Syslog, and SNMP perform different functions but work together as part of network operations
+- Centralized management reduces the need to inspect every network device individually
+- Verification should confirm that each service is actually operating rather than only confirming that commands were configured
 
 ---
 
@@ -41,3 +255,7 @@ The completed lab will include:
 
 - Cisco Packet Tracer
 - Cisco IOS
+- IPv4
+- NTP
+- Syslog
+- SNMP
