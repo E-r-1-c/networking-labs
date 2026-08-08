@@ -217,7 +217,7 @@ The output confirmed that:
 
 - Traffic sourced from `192.168.30.0/24` was denied
 - Other source addresses were permitted
-- ACL match counters increased as traffic was tested
+- Match counters increased as traffic was tested
 
 ---
 
@@ -281,26 +281,50 @@ Each ACL contained the required HTTP, HTTPS, FTP, and ICMP rules for its source 
 
 ---
 
-### Interface Attachment
+### HR Interface Attachment
 
-The client subinterfaces were checked to verify where each ACL was applied.
+The HR subinterface was checked to verify the ACLs applied in both directions.
 
 ```cisco
 show ip interface GigabitEthernet0/0.10
+```
+
+![HR ACL Interface](./images/07-hr-acl-interface.png)
+
+The output confirmed that:
+
+- `HR` was applied inbound on `G0/0.10`
+- `BLOCK_GUEST_TO_HR` remained applied outbound on `G0/0.10`
+
+---
+
+### IT Interface Attachment
+
+The IT subinterface was checked to verify its extended ACL.
+
+```cisco
 show ip interface GigabitEthernet0/0.20
+```
+
+![IT ACL Interface](./images/08-it-acl-interface.png)
+
+The output confirmed that `IT` was applied inbound on `G0/0.20`.
+
+---
+
+### Guest Interface Attachment
+
+The Guest subinterface was checked to verify its extended ACL.
+
+```cisco
 show ip interface GigabitEthernet0/0.30
 ```
 
-![Extended ACL Interface](./images/07-extended-acl-interface.png)
+![Guest ACL Interface](./images/09-guest-acl-interface.png)
 
-The output confirmed:
+The output confirmed that `GUEST` was applied inbound on `G0/0.30`.
 
-- `HR` was applied inbound on `G0/0.10`
-- `IT` was applied inbound on `G0/0.20`
-- `GUEST` was applied inbound on `G0/0.30`
-- `BLOCK_GUEST_TO_HR` remained outbound on `G0/0.10`
-
-This places the extended ACLs close to their source networks while keeping the standard ACL close to its destination.
+This places each extended ACL close to its source network while keeping the standard ACL close to the HR destination.
 
 ---
 
@@ -333,7 +357,7 @@ HTTP access to the server was tested from the client networks.
 http://192.168.40.10
 ```
 
-![HTTP Access Permitted](./images/08-http-permitted.png)
+![HTTP Access Permitted](./images/10-http-permitted.png)
 
 HTTP access succeeded as required.
 
@@ -347,7 +371,7 @@ FTP access was tested against the server.
 ftp 192.168.40.10
 ```
 
-![FTP Access Testing](./images/09-ftp-testing.png)
+![FTP Access Testing](./images/11-ftp-testing.png)
 
 FTP succeeded from IT and was blocked from HR and Guest.
 
@@ -366,7 +390,7 @@ This included:
 - IT ICMP
 - Guest ICMP
 
-![Unauthorized Traffic Denied](./images/10-unauthorized-traffic-denied.png)
+![Unauthorized Traffic Denied](./images/12-unauthorized-traffic-denied.png)
 
 The unauthorized traffic was blocked according to the required policy.
 
@@ -380,7 +404,7 @@ After traffic testing, the ACLs were checked again.
 show ip access-lists
 ```
 
-![ACL Match Counters](./images/11-acl-match-counters.png)
+![ACL Match Counters](./images/13-acl-match-counters.png)
 
 The match counters were used to confirm that traffic was reaching the expected permit and deny entries.
 
@@ -396,7 +420,7 @@ The standard ACL was temporarily moved close to the Guest source instead of rema
 
 Because the ACL could identify only the source address, Guest traffic toward multiple destinations became blocked.
 
-![Incorrect ACL Placement](./images/12-wrong-placement.png)
+![Incorrect ACL Placement](./images/14-wrong-placement.png)
 
 The ACL was returned to the HR subinterface in the outbound direction.
 
@@ -408,9 +432,9 @@ Guest access to permitted networks recovered while Guest access to HR remained b
 
 ACL entries are processed from top to bottom.
 
-A broader permit placed above a more specific restriction can allow traffic before the packet ever reaches the intended deny entry.
+A broader permit placed above a more specific restriction can allow traffic before the packet reaches the intended deny entry.
 
-The ACL order was tested and then restored so that the required service rules were processed correctly.
+The ACL order was tested and then restored so the required service rules were processed correctly.
 
 ---
 
@@ -430,7 +454,7 @@ Unrelated routed traffic became blocked by the implicit deny.
 
 The permit entry was restored and normal connectivity recovered.
 
-![ACL Recovery](./images/13-acl-recovery.png)
+![ACL Recovery](./images/15-acl-recovery.png)
 
 ---
 
