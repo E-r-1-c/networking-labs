@@ -2,9 +2,9 @@
 
 ## Overview
 
-This lab demonstrates how Link Aggregation Control Protocol (LACP) combines multiple physical switch links into a single logical EtherChannel interface.
+This lab shows how LACP combines multiple links between two switches so they can be used together instead of having STP block one of the redundant paths. This provides more bandwidth and keeps the connection working if one link fails.
 
-Two FastEthernet links were bundled into Port-Channel1 using LACP. The Port-Channel was configured as an 802.1Q trunk carrying VLANs 10 and 20, while Rapid PVST+ treated the EtherChannel as a single logical path.
+Two FastEthernet links were combined into one EtherChannel. The EtherChannel was configured as a trunk to carry VLANs 10 and 20 between the switches, while STP treated both links as a single connection.
 
 ---
 
