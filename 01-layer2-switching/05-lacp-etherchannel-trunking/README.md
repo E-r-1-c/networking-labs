@@ -23,10 +23,10 @@ Two FastEthernet links were combined into one EtherChannel. The EtherChannel was
 
 ![Network Topology](./images/topology.png)
 
-| Switch | Role | Physical Interfaces | Logical Interface | LACP Mode |
-|---|---|---|---|---|
-| SW0 | Distribution switch | Fa0/1–Fa0/2 | Port-Channel1 | Active |
-| SW1 | Access switch | Fa0/1–Fa0/2 | Port-Channel1 | Active |
+| Switch | Physical Interfaces | Logical Interface | LACP Mode |
+|---|---|---|---|
+| SW0 | Fa0/1–Fa0/2 | Port-Channel1 | Active |
+| SW1 | Fa0/1–Fa0/2 | Port-Channel1 | Active |
 
 ---
 
