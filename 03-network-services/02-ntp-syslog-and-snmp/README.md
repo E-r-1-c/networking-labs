@@ -67,13 +67,15 @@ Together, these services provide centralized time, logging, and network manageme
 
 ## Baseline Connectivity
 
-Before configuring NTP, Syslog, or SNMP, IP connectivity to the management server was verified.
+Before configuring NTP, Syslog, or SNMP, basic connectivity to the management server was verified.
 
-The router and both switches successfully reached `192.168.20.10`. The VLAN 10 client also reached the server through R0, confirming that inter-VLAN routing was working.
+The switches were given management IPs through VLAN 20 SVIs, while R0 used its VLAN 20 subinterface as the management gateway.
+
+R0, both switches, and the VLAN 10 client successfully reached `192.168.20.10`.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
-This established working network connectivity before the management services were added.
+This confirmed that the management network and inter-VLAN routing were working before the services were configured.
 
 ---
 
