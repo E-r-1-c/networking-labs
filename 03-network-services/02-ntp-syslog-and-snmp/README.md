@@ -27,9 +27,7 @@ The topology uses a router, two switches, and an internal management server. VLA
 
 ![Network Topology](./images/topology.png)
 
-VLAN 10 contains the end-user network, while VLAN 20 is used for network management.
-
-The management server and both switch management interfaces are assigned to VLAN 20. R0 provides the default gateway for both VLANs through Router-on-a-Stick.
+VLAN 10 contains the end-user network, while VLAN 20 is used for network management. The management server and both switch management interfaces use VLAN 20, and R0 provides the default gateway for both VLANs through Router-on-a-Stick.
 
 ---
 
@@ -38,7 +36,7 @@ The management server and both switch management interfaces are assigned to VLAN
 | VLAN | Name | Network | Gateway | Purpose |
 |---|---|---|---|---|
 | 10 | Users | `192.168.10.0/24` | `192.168.10.1` | End-user network |
-| 20 | MANAGEMENT | `192.168.20.0/24` | `192.168.20.1` | Network management services |
+| 20 | MANAGEMENT | `192.168.20.0/24` | `192.168.20.1` | Network management |
 
 ### Device Addressing
 
@@ -51,7 +49,7 @@ The management server and both switch management interfaces are assigned to VLAN
 | Management Server | NIC | `192.168.20.10/24` | NTP, Syslog, and SNMP |
 | PC | NIC | `192.168.10.10/24` | End-User Device |
 
-The switches use their VLAN 20 SVIs for IP-based management while continuing to operate as Layer 2 switches for normal traffic.
+The switches use VLAN 20 SVIs for IP-based management while continuing to operate as Layer 2 switches for normal traffic.
 
 ---
 
@@ -63,35 +61,7 @@ The switches use their VLAN 20 SVIs for IP-based management while continuing to 
 | Syslog | Sends device events and system messages to a central server |
 | SNMP | Provides remote monitoring of device and interface information |
 
-NTP gives the devices a consistent time source, allowing Syslog events from different devices to use comparable timestamps. SNMP provides additional visibility into the current state of the network devices and their interfaces.
-
----
-
-## Management Network Configuration
-
-VLAN 20 was created as the dedicated management VLAN.
-
-The management server was assigned:
-
-```text
-192.168.20.10/24
-Gateway: 192.168.20.1
-```
-
-Each Layer 2 switch was given an SVI in VLAN 20.
-
-```text
-Switch 1: 192.168.20.11/24
-Switch 2: 192.168.20.12/24
-```
-
-R0 provides the management network gateway through its VLAN 20 subinterface.
-
-```text
-192.168.20.1/24
-```
-
-The switches use R0 as their default gateway for management traffic that must reach other networks.
+Together, these services provide centralized time, logging, and monitoring for the network devices.
 
 ---
 
@@ -99,25 +69,23 @@ The switches use R0 as their default gateway for management traffic that must re
 
 Before configuring NTP, Syslog, or SNMP, IP connectivity to the management server was verified.
 
-The router and both switches successfully reached `192.168.20.10`.
-
-The VLAN 10 client also reached the management server through R0, confirming that Router-on-a-Stick routing between the user and management networks was working.
+The router and both switches successfully reached `192.168.20.10`. The VLAN 10 client also reached the server through R0, confirming that inter-VLAN routing was working.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
-This established working IP connectivity before the management services were added.
+This established working network connectivity before the management services were added.
 
 ---
 
 ## NTP Configuration
 
-The router and both switches were configured to use the internal management server as their NTP source.
+The router and both switches were configured to use the management server as their NTP source.
 
 ```cisco
 ntp server 192.168.20.10
 ```
 
-Using one time source keeps device clocks synchronized and provides consistent timestamps for events generated across the network.
+Using the same time source keeps device clocks synchronized and provides consistent timestamps for events across the network.
 
 ---
 
@@ -129,7 +97,7 @@ The router and both switches were configured to send Syslog messages to the mana
 logging 192.168.20.10
 ```
 
-This allows events from multiple devices to be collected at `192.168.20.10` instead of requiring each device's local logs to be checked separately.
+This allows events from multiple devices to be collected in one central location.
 
 ---
 
@@ -141,7 +109,7 @@ Read-only SNMP access was configured on the router and switches.
 snmp-server community <COMMUNITY> ro
 ```
 
-The management system can use SNMP to retrieve device and interface information without receiving permission to modify the device configuration.
+Read-only access allows the management server to retrieve device and interface information without allowing configuration changes through SNMP.
 
 ---
 
@@ -149,7 +117,7 @@ The management system can use SNMP to retrieve device and interface information 
 
 ## Management Address Verification
 
-The switch management interfaces were verified before testing the services.
+The switch management interfaces were verified before testing the management services.
 
 ```cisco
 show ip interface brief
@@ -173,13 +141,13 @@ show clock
 
 ![NTP Verification](./images/03-ntp-verification.png)
 
-The output confirmed that the devices formed an association with the management server and synchronized their clocks.
+The output confirmed that the devices formed an association with the NTP server and synchronized their clocks.
 
 ---
 
 ## Syslog Verification
 
-The remote logging destination was verified on the network devices.
+The remote Syslog destination was verified on the network devices.
 
 ```cisco
 show logging
@@ -193,7 +161,7 @@ The output confirmed that Syslog messages were configured to be sent to `192.168
 
 ## Syslog Event Testing
 
-A device event was generated by temporarily changing the state of an interface.
+A network event was generated by temporarily changing the state of an interface.
 
 ```cisco
 interface <INTERFACE>
@@ -205,38 +173,17 @@ The Syslog service on the management server was then checked.
 
 ![Syslog Event](./images/05-syslog-event.png)
 
-The server received the interface state-change messages, confirming that network events were being forwarded to the centralized log server.
-
-Because the devices were synchronized through NTP, the timestamps could also be compared consistently across devices.
+The server received the interface state-change messages, confirming that device events were being forwarded successfully.
 
 ---
 
 ## SNMP Verification
 
-SNMP communication was tested between the management system and the network devices.
+SNMP communication was tested between the management server and the network devices.
 
 ![SNMP Verification](./images/06-snmp-verification.png)
 
-The management system successfully retrieved information from the configured devices, confirming that read-only SNMP monitoring was working.
-
----
-
-## Centralized Management
-
-The completed design provides three management functions through the internal management network.
-
-```text
-                    Management Server
-                     192.168.20.10
-                    /       |        \
-                  NTP     Syslog      SNMP
-                   |         |          |
-              Router and Managed Switches
-```
-
-![Management Services](./images/07-management-services.png)
-
-NTP provides synchronized time, Syslog collects device events, and SNMP provides remote device information.
+The management server successfully retrieved device information, confirming that read-only SNMP monitoring was working.
 
 ---
 
@@ -253,7 +200,7 @@ show ntp associations
 show ntp status
 ```
 
-![NTP Failure](./images/08-ntp-failure.png)
+![NTP Failure](./images/07-ntp-failure.png)
 
 The output showed that normal communication with the configured NTP source was no longer available.
 
@@ -271,7 +218,7 @@ show ntp status
 show clock
 ```
 
-![NTP Recovery](./images/09-ntp-recovery.png)
+![NTP Recovery](./images/08-ntp-recovery.png)
 
 The NTP association recovered and the device was again able to synchronize with the management server.
 
@@ -283,14 +230,14 @@ The NTP association recovered and the device was again able to synchronize with 
 - An SVI provides a Layer 2 switch with an IP interface for management
 - A dedicated management VLAN separates management addressing from the user network
 - Router-on-a-Stick provides routing between the user and management VLANs
-- NTP keeps network device clocks synchronized
-- Consistent time makes events from different devices easier to compare
-- Syslog sends device events to a centralized server
+- NTP keeps device clocks synchronized
+- Consistent time improves event correlation during troubleshooting
+- Syslog centralizes device events and system messages
 - SNMP provides remote visibility into device and interface information
 - Read-only SNMP allows monitoring without permitting configuration changes
-- NTP, Syslog, and SNMP perform different functions but work together as part of centralized network management
-- All three services depend on working IP connectivity between the managed devices and the management network
-- Verification should prove that each service is actually operating rather than only showing its configuration
+- NTP, Syslog, and SNMP work together as part of centralized network management
+- Management services depend on working IP connectivity to the management server
+- Verification should prove that each service is operating, not just configured
 
 ---
 
