@@ -116,7 +116,7 @@ The community string acts as a shared credential between the SNMP manager and th
 
 The `rw` option gives the SNMP manager read-write access. This allows it to retrieve device information and also permits supported values to be changed through SNMP.
 
-In this lab, the same community string was configured on R0, Switch 1, and Switch 2 so the management server could communicate with each device.
+In this lab, the same community string was configured on R0, Switch 0, and Switch 1 so the management server could communicate with each device.
 
 ---
 
@@ -143,7 +143,6 @@ NTP was checked after the router and switches were configured to use `192.168.20
 ```cisco
 show ntp associations
 show ntp status
-show clock
 ```
 
 ![NTP Verification](./images/03-ntp-verification.png)
