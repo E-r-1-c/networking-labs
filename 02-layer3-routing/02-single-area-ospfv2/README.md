@@ -2,9 +2,9 @@
 
 ## Overview
 
-This lab shows how OSPF automatically discovers neighboring routers, learns routes to other networks, chooses the lowest-cost path, and updates the route when a link fails.
+This lab shows how OSPF allows routers to automatically learn about other networks, build routes to reach them, choose the lowest-cost path, and update those routes when a link fails.
 
-A four-router topology connects two LANs. R2 provides the preferred path, while R1 provides a higher-cost backup path. R0, R1, and R2 also share an Ethernet network to demonstrate OSPF neighbor formation and DR and BDR election.
+A four-router topology was built between two LANs with two possible paths. OSPF was configured to use the lower-cost path during normal operation and switch to the alternate path if the preferred link failed.
 
 ---
 
