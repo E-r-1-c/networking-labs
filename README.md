@@ -1,8 +1,8 @@
 # Networking Labs
 
-Hands-on Cisco networking labs covering switching, routing, network services, security, WAN connectivity, troubleshooting, and enterprise network design.
+Hands-on Cisco networking labs covering switching, routing, network services, security, WAN connectivity, troubleshooting, and larger network designs.
 
-This repository shows how I build networks, configure networking technologies, verify how they operate, and test what happens when links or configurations fail.
+This repository contains labs where I build network topologies, configure networking features, verify that they work, and test failures when they are useful to the lab.
 
 ---
 
@@ -12,7 +12,7 @@ This repository shows how I build networks, configure networking technologies, v
 |---|---|
 | **01 — Layer 2 Switching** | VLANs, trunking, Inter-VLAN routing, STP, EtherChannel, Port Security, and DHCP Snooping |
 | **02 — Layer 3 Routing** | Static routes, default routes, floating static routes, OSPFv2, IPv6 routing, and OSPFv3 |
-| **03 — Network Services** | DHCP, DHCP relay, IPv6 address assignment, NTP, Syslog, SNMP, configuration backups, and HSRP |
+| **03 — Network Services** | DHCP, DHCP relay, NTP, Syslog, SNMP, DNS, and HSRP |
 | **04 — Network Security** | Access control lists, Dynamic ARP Inspection, SSH, AAA, and VTY security |
 | **05 — Edge, WAN & VPN** | NAT, PAT, serial WAN connections, GRE tunnels, and site-to-site VPNs |
 | **06 — Network Troubleshooting** | Broken switching, routing, service, security, and edge-network scenarios |
@@ -22,16 +22,18 @@ This repository shows how I build networks, configure networking technologies, v
 
 ## Lab Approach
 
-Each lab focuses on a clear networking problem and includes:
+Each lab focuses on one or more networking topic and shows how it is configured, verified, and tested in a working topology.
 
-- A network topology and addressing plan
-- The main device configurations
-- Commands used to verify operation
-- Connectivity and traffic-path testing
+Labs generally include:
+
+- Network topology and addressing
+- Device configurations
+- Verification commands
+- Connectivity testing
 - Failure and recovery testing where appropriate
-- Key takeaways from the completed lab
+- Key takeaways
 
-The goal is not only to make the network work, but to understand why traffic follows a certain path, how the devices make decisions, and what changes when part of the network fails.
+The goal is to clearly show what was built, how it was configured, and how I verified that it worked.
 
 ---
 
