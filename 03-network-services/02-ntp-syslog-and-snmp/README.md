@@ -44,8 +44,8 @@ VLAN 10 contains the end-user network, while VLAN 20 is used for network managem
 |---|---|---|---|
 | R0 | VLAN 10 Subinterface | `192.168.10.1/24` | VLAN 10 Default Gateway |
 | R0 | VLAN 20 Subinterface | `192.168.20.1/24` | Management Default Gateway |
-| Switch 1 | VLAN 20 SVI | `192.168.20.11/24` | Switch Management |
-| Switch 2 | VLAN 20 SVI | `192.168.20.12/24` | Switch Management |
+| Switch 0 | VLAN 20 SVI | `192.168.20.11/24` | Switch Management |
+| Switch 1 | VLAN 20 SVI | `192.168.20.12/24` | Switch Management |
 | Management Server | NIC | `192.168.20.10/24` | NTP, Syslog, and SNMP |
 | PC | NIC | `192.168.10.10/24` | End-User Device |
 
