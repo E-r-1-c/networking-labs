@@ -4,7 +4,7 @@
 
 This lab shows how DNS translates hostnames into IP addresses so users and applications can reach network resources by name instead of remembering addresses.
 
-The topology uses a router, two switches, a DNS server, an internal web server, and a client device. The DNS server stores hostname records, while Router-on-a-Stick provides communication between the user and server networks.
+TThe topology uses a router, two switches, a client, and two internal servers. One server provides DNS, while the other hosts a web service. The client reaches both servers across VLANs through Router-on-a-Stick and uses DNS to resolve the web server’s hostname before connecting to it.
 
 ---
 
