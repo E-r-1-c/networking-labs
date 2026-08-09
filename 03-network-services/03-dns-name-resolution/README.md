@@ -39,30 +39,28 @@ R0 routes traffic between both networks using Router-on-a-Stick.
 | 10 | USERS | End-user network |
 | 20 | SERVICES | Internal server network |
 
-### Device Roles
+### Device Addressing
 
-| Device | Purpose |
-|---|---|
-| R0 | Inter-VLAN routing and default gateways |
-| Switch 0 | Connects R0 and the internal servers |
-| Switch 1 | Connects the client network |
-| DNS Server | Resolves internal hostnames |
-| Web Server | Hosts the internal web page |
-| PC | DNS client |
+| Device | IP Address | Purpose |
+|---|---|---|
+| R0 | VLAN gateway addresses | Inter-VLAN routing |
+| Web Server | `192.168.20.10` | Hosts the internal web page |
+| DNS Server | `192.168.20.11` | Provides DNS name resolution |
+| PC | User VLAN address | DNS client |
 
 ---
 
 ## DNS Design
 
-The DNS server was used to provide name resolution for the internal web server.
+The DNS server provides name resolution for the internal web server.
 
-An A record was created to map the hostname `testsite` to the web server's IPv4 address.
+An A record was created to map the hostname `testsite` to the web server.
 
 ```text
-testsite → <WEB-SERVER-IP>
+testsite → 192.168.20.10
 ```
 
-The client was then configured to use the internal DNS server for name resolution.
+The client was configured to use the DNS server at `192.168.20.11`.
 
 ---
 
@@ -70,26 +68,26 @@ The client was then configured to use the internal DNS server for name resolutio
 
 Before configuring DNS, basic IP connectivity was verified.
 
-The client successfully reached both the DNS server and web server by IP address.
+The client successfully reached both the web server at `192.168.20.10` and the DNS server at `192.168.20.11`.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
-This confirmed that VLANs, Router-on-a-Stick, and routing between the user and services networks were working before DNS was added.
+This confirmed that the VLANs and inter-VLAN routing were working before DNS was added.
 
 ---
 
 ## DNS Server Configuration
 
-DNS was enabled on the internal DNS server.
+DNS was enabled on the internal DNS server at `192.168.20.11`.
 
 An A record was created for the web server:
 
 ```text
 Name: testsite
-Address: <WEB-SERVER-IP>
+Address: 192.168.20.10
 ```
 
-This allows the DNS server to return the web server's IP address when the client requests `testsite`.
+This allows the DNS server to return the web server's address when the client requests `testsite`.
 
 ---
 
@@ -98,10 +96,10 @@ This allows the DNS server to return the web server's IP address when the client
 The client was configured to use the internal DNS server.
 
 ```text
-DNS Server: <DNS-SERVER-IP>
+DNS Server: 192.168.20.11
 ```
 
-This allows the client to send DNS requests to the server when a hostname needs to be resolved.
+When the client needs to resolve a hostname, it sends the DNS request to this server.
 
 ---
 
@@ -109,11 +107,11 @@ This allows the client to send DNS requests to the server when a hostname needs 
 
 ## DNS Record Verification
 
-The configured DNS record was verified on the DNS server.
+The configured A record was verified on the DNS server.
 
 ![DNS Record](./images/02-dns-record.png)
 
-The record confirmed that `testsite` was mapped to the web server's IP address.
+The record confirmed that `testsite` was mapped to `192.168.20.10`.
 
 ---
 
@@ -127,7 +125,7 @@ ping testsite
 
 ![DNS Resolution](./images/03-dns-resolution.png)
 
-The client resolved `testsite` to the correct web server IP address and received a successful response.
+The client resolved `testsite` to `192.168.20.10` and received a successful response.
 
 This confirmed that DNS name resolution was working.
 
@@ -143,7 +141,7 @@ http://testsite
 
 ![Web Access](./images/04-web-access.png)
 
-The page loaded successfully, confirming that the client could resolve the hostname and then connect to the web server.
+The page loaded successfully, confirming that the client could resolve `testsite` and connect to the web server.
 
 ---
 
@@ -153,9 +151,9 @@ The DNS record for `testsite` was temporarily removed.
 
 ![Failed Resolution](./images/05-failed-resolution.png)
 
-The client could no longer resolve the hostname, even though the network and web server were still available by IP address.
+The client could no longer resolve the hostname, even though the web server was still reachable directly at `192.168.20.10`.
 
-The DNS record was then restored and normal name resolution returned.
+The DNS record was restored after the test and normal name resolution returned.
 
 ---
 
@@ -163,13 +161,13 @@ The DNS record was then restored and normal name resolution returned.
 
 - DNS translates hostnames into IP addresses
 - An A record maps a hostname to an IPv4 address
-- Clients must know which DNS server to query
-- DNS depends on working IP connectivity between the client and DNS server
+- Clients must be configured with a DNS server to resolve names
+- DNS requires working IP connectivity between the client and DNS server
 - DNS can operate across routed VLANs
-- Name resolution and network connectivity are separate functions
-- A server can still be reachable by IP even when DNS resolution fails
-- Successful DNS resolution does not automatically prove that the application itself is working
-- End-to-end testing should verify both name resolution and access to the actual service
+- Name resolution and basic network connectivity are separate functions
+- A web server can remain reachable by IP even when DNS resolution fails
+- Successful name resolution does not automatically prove that the web service itself is working
+- Testing by both IP address and hostname helps separate DNS problems from connectivity problems
 
 ---
 
