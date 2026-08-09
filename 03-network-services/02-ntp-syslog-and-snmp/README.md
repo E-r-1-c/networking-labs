@@ -2,7 +2,7 @@
 
 ## Overview
 
-This lab shows how NTP keeps device clocks synchronized, how Syslog sends network events to a central server, and how SNMP monitors device and interface information.
+This lab shows how NTP keeps device clocks synchronized, how Syslog sends network events to a central server, and how SNMP allows devices to be monitored and managed remotely.
 
 The topology uses a router, two switches, and an internal management server. VLAN 20 is used for management, while VLAN 10 contains the user device.
 
@@ -15,7 +15,7 @@ The topology uses a router, two switches, and an internal management server. VLA
 - Provide inter-VLAN routing using Router-on-a-Stick
 - Configure centralized NTP time synchronization
 - Configure Syslog forwarding to a management server
-- Configure read-only SNMP monitoring
+- Configure SNMP access on network devices
 - Verify NTP synchronization
 - Generate and verify centralized Syslog events
 - Verify SNMP communication with network devices
@@ -59,9 +59,9 @@ The switches use VLAN 20 SVIs for IP-based management while continuing to operat
 |---|---|
 | NTP | Keeps network device clocks synchronized |
 | Syslog | Sends device events and system messages to a central server |
-| SNMP | Provides remote monitoring of device and interface information |
+| SNMP | Allows a management system to retrieve and modify device information |
 
-Together, these services provide centralized time, logging, and monitoring for the network devices.
+Together, these services provide centralized time, logging, and network management.
 
 ---
 
@@ -85,7 +85,7 @@ The router and both switches were configured to use the management server as the
 ntp server 192.168.20.10
 ```
 
-Using the same time source keeps device clocks synchronized and provides consistent timestamps for events across the network.
+Using the same time source keeps device clocks synchronized and provides consistent timestamps across the network.
 
 ---
 
@@ -95,21 +95,28 @@ The router and both switches were configured to send Syslog messages to the mana
 
 ```cisco
 logging 192.168.20.10
+service timestamps log datetime msec
 ```
 
-This allows events from multiple devices to be collected in one central location.
+The logging host command sends Syslog messages to the management server, while the timestamp command adds the device time to generated log messages.
+
+Because the devices use the same NTP source, their Syslog timestamps can be compared more easily across the network.
 
 ---
 
 ## SNMP Configuration
 
-Read-only SNMP access was configured on the router and switches.
+SNMP was configured on the router and switches using a shared community string.
 
 ```cisco
-snmp-server community <COMMUNITY> ro
+snmp-server community cisco rw
 ```
 
-Read-only access allows the management server to retrieve device and interface information without allowing configuration changes through SNMP.
+The community string acts as a shared credential between the SNMP manager and the managed device.
+
+The `rw` option gives the SNMP manager read-write access. This allows it to retrieve device information and also permits supported values to be changed through SNMP.
+
+In this lab, the same community string was configured on R0, Switch 1, and Switch 2 so the management server could communicate with each device.
 
 ---
 
@@ -155,7 +162,7 @@ show logging
 
 ![Syslog Configuration](./images/04-syslog-config.png)
 
-The output confirmed that Syslog messages were configured to be sent to `192.168.20.10`.
+The output confirmed that Syslog messages were being sent to `192.168.20.10` over UDP port 514.
 
 ---
 
@@ -173,7 +180,9 @@ The Syslog service on the management server was then checked.
 
 ![Syslog Event](./images/05-syslog-event.png)
 
-The server received the interface state-change messages, confirming that device events were being forwarded successfully.
+The server received the interface state-change messages from the network devices, confirming that centralized Syslog forwarding was working.
+
+The messages also included timestamps generated from the synchronized device clocks.
 
 ---
 
@@ -183,7 +192,9 @@ SNMP communication was tested between the management server and the network devi
 
 ![SNMP Verification](./images/06-snmp-verification.png)
 
-The management server successfully retrieved device information, confirming that read-only SNMP monitoring was working.
+The management server successfully communicated with the configured devices using the shared SNMP community string.
+
+This confirmed that SNMP was operational and that device information could be accessed remotely.
 
 ---
 
@@ -231,10 +242,12 @@ The NTP association recovered and the device was again able to synchronize with 
 - A dedicated management VLAN separates management addressing from the user network
 - Router-on-a-Stick provides routing between the user and management VLANs
 - NTP keeps device clocks synchronized
-- Consistent time improves event correlation during troubleshooting
+- Synchronized clocks provide consistent timestamps across network devices
 - Syslog centralizes device events and system messages
-- SNMP provides remote visibility into device and interface information
-- Read-only SNMP allows monitoring without permitting configuration changes
+- Syslog messages can include timestamps from the device clock
+- SNMP allows a management system to access device and interface information remotely
+- SNMP community strings control access between the manager and managed devices
+- Read-write SNMP allows both monitoring and supported remote changes
 - NTP, Syslog, and SNMP work together as part of centralized network management
 - Management services depend on working IP connectivity to the management server
 - Verification should prove that each service is operating, not just configured
