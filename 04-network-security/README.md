@@ -1,37 +1,22 @@
 # Network Security
 
-Hands-on Cisco network security labs covering traffic filtering, access-layer attack prevention, secure remote management, and device access hardening.
+Hands-on Cisco network security labs covering traffic filtering, access-layer protections, and secure device management.
 
-This section shows how routers and switches restrict unauthorized traffic, protect access ports, validate address information, and secure administrative access to network devices.
+This section focuses on controlling network access, protecting Layer 2 infrastructure, and securing administrative connections to network devices.
 
 ---
 
 ## Focus Areas
 
-- Standard and extended IPv4 access control lists
-- Inbound and outbound traffic filtering
-- ACL placement and processing order
-- Permit and deny rule testing
-- Implicit deny behavior
-- Port Security and sticky MAC learning
-- Maximum MAC address limits
-- Port Security violation modes
-- DHCP Snooping across multiple VLANs
-- Trusted and untrusted switch interfaces
-- Rogue DHCP server protection
-- DHCP Snooping binding tables
-- DHCP rate limiting on access ports
+- Access control lists
+- Traffic filtering and ACL placement
+- Port Security
+- DHCP Snooping
 - Dynamic ARP Inspection
-- ARP spoofing and poisoning prevention
-- ARP validation using DHCP Snooping bindings
 - IP Source Guard
-- Source IP and MAC address validation
-- Local user authentication
-- RSA key generation and SSH version 2
-- Secure VTY access
-- Telnet removal
-- Login restrictions and session timeouts
-- Security failure, attack, and recovery testing
+- SSH and secure VTY access
+- Local authentication
+- Security verification and failure testing
 
 ---
 
@@ -39,15 +24,15 @@ This section shows how routers and switches restrict unauthorized traffic, prote
 
 | Lab | Description |
 | :--- | :--- |
-| **01 — ACL Traffic Filtering** | Configure standard and extended ACLs to control traffic between networks and verify permitted and denied connections. |
-| **02 — Access-Layer Security Hardening** | Combine Port Security, DHCP Snooping, Dynamic ARP Inspection, and IP Source Guard across multiple VLANs and switches to block unauthorized devices, rogue DHCP responses, ARP spoofing, and source-address spoofing. |
-| **03 — SSH & VTY Hardening** | Replace insecure Telnet access with SSH, configure local authentication, restrict remote access, and harden management sessions. |
+| **01 — ACL Traffic Filtering** | Configure standard and extended ACLs to control traffic between networks and verify permitted and denied traffic. |
+| **02 — Access-Layer Security Hardening** | Use Port Security, DHCP Snooping, Dynamic ARP Inspection, and IP Source Guard to protect switched networks from common Layer 2 attacks. |
+| **03 — SSH & VTY Hardening** | Configure SSH, local authentication, and VTY restrictions to secure remote device management. |
 
 ---
 
 ## Lab Structure
 
-Each lab includes an overview, objectives, network topology, security requirements, configuration, verification, attack or failure testing, recovery testing where appropriate, and key takeaways.
+Each lab includes a topology, security requirements, configuration, verification, failure or attack testing where appropriate, and key takeaways.
 
 ---
 
