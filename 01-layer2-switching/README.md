@@ -1,6 +1,6 @@
 # Layer 2 Switching
 
-Hands-on Cisco switching labs covering VLANs, trunking, Spanning Tree Protocol, EtherChannel, access-layer security, and Inter-VLAN routing.
+Hands-on Cisco switching labs covering VLANs, trunking, Inter-VLAN routing, Spanning Tree Protocol, access-layer security, and EtherChannel.
 
 This section shows how switched networks are built, how traffic moves between switches and VLANs, and how common Layer 2 problems are prevented.
 
