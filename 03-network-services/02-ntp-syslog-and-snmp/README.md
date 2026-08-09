@@ -2,9 +2,9 @@
 
 ## Overview
 
-This lab shows how NTP synchronizes network device clocks, how Syslog sends device events to a central server, and how SNMP allows device and interface information to be monitored remotely.
+This lab shows how NTP, Syslog, and SNMP centralize time synchronization, logging, and network monitoring.
 
-The topology uses a router, two switches, and an internal management server. VLAN 20 provides a dedicated management network for the server and switch management interfaces, while VLAN 10 contains an end-user device. The router and switches use the management server for time synchronization, centralized logging, and SNMP monitoring.
+The topology uses a router, two switches, and an internal management server. VLAN 20 is used for management, while VLAN 10 contains an end-user device. The router and switches use the server for NTP, Syslog, and SNMP.
 
 ---
 
