@@ -24,7 +24,7 @@ The topology uses a router, two switches, and an internal management server. The
 
 ![Network Topology](./images/topology.png)
 
-The management server is connected to the network as a reachable host. R0, SW0, and SW1 use IP connectivity to reach the server for NTP, Syslog, and SNMP services.
+The internal management server provides NTP, Syslog, and SNMP services for the router and switches.
 
 ---
 
@@ -32,12 +32,12 @@ The management server is connected to the network as a reachable host. R0, SW0, 
 
 | Device | Role | Management Address |
 |---|---|---|
-| R0 | Router | Management IP |
-| SW0 | Switch | Management IP |
-| SW1 | Switch | Management IP |
-| Management Server | NTP, Syslog, SNMP | Server IP |
+| Router | Routed network device | Management IP |
+| Switch 1 | Managed switch | Management IP |
+| Switch 2 | Managed switch | Management IP |
+| Management Server | NTP, Syslog, and SNMP services | Server IP |
 
-All managed devices must have IP connectivity to the management server before the network services are configured.
+All network devices must have IP connectivity to the management server before the services are configured.
 
 ---
 
@@ -49,7 +49,7 @@ All managed devices must have IP connectivity to the management server before th
 | Syslog | Sends device events and system messages to a central server |
 | SNMP | Provides remote monitoring of device and interface information |
 
-NTP provides consistent time for device events, Syslog centralizes those events, and SNMP provides additional information about the current state of the network devices.
+NTP provides consistent timestamps, Syslog centralizes device events, and SNMP provides information about the current state of the network devices.
 
 ---
 
@@ -57,7 +57,7 @@ NTP provides consistent time for device events, Syslog centralizes those events,
 
 Before configuring the management services, connectivity to the management server was verified from each network device.
 
-This confirmed that any later service failures were caused by NTP, Syslog, or SNMP configuration rather than basic network connectivity.
+This confirmed that later service failures were caused by NTP, Syslog, or SNMP configuration rather than basic network connectivity.
 
 ![Baseline Connectivity](./images/01-baseline-connectivity.png)
 
@@ -65,19 +65,19 @@ This confirmed that any later service failures were caused by NTP, Syslog, or SN
 
 ## NTP Configuration
 
-R0, SW0, and SW1 were configured to use the management server as their NTP source.
+The router and switches were configured to use the internal management server as their NTP source.
 
 ```cisco
 ntp server <NTP-SERVER-IP>
 ```
 
-Using the same time source keeps timestamps consistent across the network, which makes events from different devices easier to compare during troubleshooting.
+Using the same time source keeps timestamps consistent across the network, making events from different devices easier to compare during troubleshooting.
 
 ---
 
 ## Syslog Configuration
 
-R0, SW0, and SW1 were configured to send Syslog messages to the management server.
+The router and switches were configured to send Syslog messages to the management server.
 
 ```cisco
 logging <SYSLOG-SERVER-IP>
@@ -157,7 +157,7 @@ The management server successfully retrieved device information, confirming that
 
 ## Centralized Management
 
-The completed configuration allowed the same management server to support all three functions.
+The completed configuration allowed the same internal management server to support all three functions.
 
 ![Management Services](./images/06-management-services.png)
 
@@ -208,7 +208,7 @@ The NTP association recovered and the device was again able to synchronize with 
 - SNMP provides remote monitoring of device and interface information
 - Read-only SNMP allows monitoring without permitting configuration changes
 - NTP, Syslog, and SNMP provide different functions but work together as part of centralized network management
-- Management services depend on basic IP connectivity to the server
+- Management services depend on IP connectivity to the internal server
 - Verification should confirm that each service is actually operating
 - Failure testing helps show how service availability depends on network reachability
 
