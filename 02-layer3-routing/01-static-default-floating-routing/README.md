@@ -2,9 +2,9 @@
 
 ## Overview
 
-This lab shows how static routes connect different networks, how default routes handle unknown destinations, and how floating static routes provide a backup path if the main route fails.
+This lab shows how static routes connect separate networks by manually directing traffic between them, how default routes handle destinations without a specific route, and how floating static routes provide a backup path if the main route fails.
 
-A three-router topology was built with a direct path between two LANs. A third router connects both sites to the ISP and provides an alternate path if the direct connection fails.
+A three-router topology was built with two LANs connected by a direct path and an alternate path through a third router. The direct route is used normally, while the floating route has a higher administrative distance so it stays inactive until the main route is no longer available. Default routes send all other traffic toward the simulated Internet.
 
 ---
 
