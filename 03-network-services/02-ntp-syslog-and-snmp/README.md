@@ -4,7 +4,7 @@
 
 This lab shows how NTP synchronizes network device clocks, how Syslog sends device events to a central server, and how SNMP allows device and interface information to be monitored remotely.
 
-A router and two switches connect through the network to a management server. The devices use the server as their NTP source, send Syslog messages to it, and allow SNMP monitoring so time, events, and device information can be managed from one central location.
+The topology uses a router, two switches, and an internal management server. The router and switches use this server for time synchronization, centralized logging, and SNMP monitoring.
 
 ---
 
