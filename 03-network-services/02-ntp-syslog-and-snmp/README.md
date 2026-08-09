@@ -199,43 +199,6 @@ This confirmed that SNMP was operational and that device information could be ac
 
 ---
 
-# Failure and Recovery Testing
-
-## NTP Failure
-
-Connectivity between one managed device and the NTP server was temporarily interrupted.
-
-NTP was then checked again.
-
-```cisco
-show ntp associations
-show ntp status
-```
-
-![NTP Failure](./images/07-ntp-failure.png)
-
-The output showed that normal communication with the configured NTP source was no longer available.
-
-This demonstrated that NTP synchronization depends on reachability to the management server.
-
----
-
-## NTP Recovery
-
-Connectivity to `192.168.20.10` was restored and NTP was checked again.
-
-```cisco
-show ntp associations
-show ntp status
-show clock
-```
-
-![NTP Recovery](./images/08-ntp-recovery.png)
-
-The NTP association recovered and the device was again able to synchronize with the management server.
-
----
-
 ## Key Takeaways
 
 - Layer 2 switches require management IP addresses to use IP-based management services
