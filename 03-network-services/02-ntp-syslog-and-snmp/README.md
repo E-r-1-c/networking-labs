@@ -94,7 +94,7 @@ Using the same time source keeps device clocks synchronized and provides consist
 The router and both switches were configured to send Syslog messages to the management server.
 
 ```cisco
-logging 192.168.20.10
+logging host 192.168.20.10
 service timestamps log datetime msec
 ```
 
