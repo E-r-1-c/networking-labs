@@ -46,7 +46,7 @@ R0 routes traffic between both networks using Router-on-a-Stick.
 | R0 | VLAN gateway addresses | Inter-VLAN routing |
 | Web Server | `192.168.20.10` | Hosts the internal web page |
 | DNS Server | `192.168.20.11` | Provides DNS name resolution |
-| PC | User VLAN address | DNS client |
+| PC | `192.168.10.10` | DNS client |
 
 ---
 
