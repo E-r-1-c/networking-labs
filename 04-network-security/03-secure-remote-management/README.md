@@ -2,21 +2,21 @@
 
 ## Overview
 
-This lab demonstrates how Cisco routers and switches can be managed remotely through the command line and how that access can be secured.
+This lab demonstrates how Cisco network devices can be managed remotely through the command line and how that access can be secured.
 
-The lab first uses Telnet to verify basic remote CLI access, then configures SSH for encrypted remote management. The VTY lines are hardened to use local authentication and accept SSH only, allowing secure administrative access while blocking Telnet.
+The lab first configures the VTY lines and uses Telnet to verify basic remote CLI access. SSH is then configured using local authentication and RSA keys, and the VTY lines are hardened to allow SSH only so Telnet is blocked.
 
 ---
 
 ## Objectives
 
-- Configure remote CLI access to a Cisco router and switch
+- Configure IP connectivity for remote management
+- Configure VTY lines for remote CLI access
 - Use Telnet as a baseline remote-management method
-- Configure local user authentication
+- Create a local user account for authentication
 - Configure SSH version 2
 - Generate RSA keys for SSH
-- Understand the purpose of VTY lines
-- Restrict remote access to SSH only
+- Restrict VTY access to SSH only
 - Verify successful SSH access
 - Verify Telnet is blocked after hardening
 - Test failed SSH authentication
@@ -28,79 +28,100 @@ The lab first uses Telnet to verify basic remote CLI access, then configures SSH
 
 ![Network Topology](./images/topology.png)
 
-The topology uses an administrator PC connected through SW0 to R0.
+The topology uses a router, switch, and administrator PC on the same network.
 
-Both R0 and SW0 have reachable IP addresses so the administrator PC can remotely access their command-line interfaces.
+The administrator PC is used to remotely access both R0 and SW0 through their IP addresses.
 
 ---
 
 ## Network Design
 
-| Device | Role |
-|---|---|
-| R0 | Router and remotely managed network device |
-| SW0 | Switch and remotely managed network device |
-| PC-Admin | Administrator workstation used for remote access |
-
-Basic IP connectivity was configured and verified before Telnet or SSH was enabled.
+| Device | IP Address | Role |
+|---|---|---|
+| R0 | `192.168.10.1` | Router and remotely managed device |
+| SW0 | `192.168.10.10` | Switch management address |
+| PC-Admin | `192.168.10.11` | Administrator workstation |
 
 ---
 
 ## Baseline Connectivity
 
-Before configuring remote management, the administrator PC was used to verify connectivity to both network devices.
+Before configuring remote access, IP connectivity was verified from PC-Admin.
 
 ```text
-ping <R0-IP>
-ping <SW0-management-IP>
+ping 192.168.10.1
+ping 192.168.10.10
 ```
 
-Successful responses confirmed that the network path and management addressing were working before remote-access configuration began.
+Successful responses confirmed that both network devices were reachable before Telnet or SSH was configured.
 
 ---
 
-## Telnet Remote Access
+## VTY Configuration for Remote Access
 
-Telnet was configured first to demonstrate basic remote CLI access.
+Cisco IOS already provides VTY lines for remote terminal sessions.
 
-The VTY lines are virtual terminal lines used by Cisco IOS for remote command-line sessions.
+The existing VTY lines were selected so their authentication and remote-access settings could be configured.
 
 ```text
 line vty 0 15
 ```
 
-A password was configured for the VTY lines and login authentication was enabled.
+This command does not create the VTY lines. It selects VTY lines 0 through 15 for configuration.
 
-The administrator PC then connected remotely to both devices using Telnet.
+Authentication was then configured on the VTY lines before remote access was tested.
+
+---
+
+## Telnet Remote Access
+
+Telnet was used first to verify that remote CLI access was working.
+
+The VTY lines were configured with the required login settings, and Telnet was allowed as a remote-access method.
+
+From PC-Admin, connections were made to both devices:
 
 ```text
-telnet <R0-IP>
-telnet <SW0-management-IP>
+telnet 192.168.10.1
+telnet 192.168.10.10
 ```
 
 ![Telnet Access](./images/01-telnet-access.png)
 
-Successful connections confirmed that both devices could be managed remotely.
+Successful connections confirmed that:
 
-Telnet provides remote CLI access, but the session is not encrypted, making it unsuitable for secure administrative access.
+- IP connectivity was working
+- The VTY lines were available for remote sessions
+- Authentication was working
+- The router and switch could be managed remotely
+
+Telnet provides remote CLI access, but the session is not encrypted.
 
 ---
 
 ## Local User Authentication
 
-A local administrator account was created on each device.
+A local user account was created on each device.
 
 ```text
-username cisco secret <password>
+username cisco secret cisco
 ```
 
-The local username database is separate from the password used to enter privileged EXEC mode.
-
-When `login local` is configured on the VTY lines, the device authenticates remote users using the locally configured username and password.
+The local user account is used when the VTY lines are configured with:
 
 ```text
 login local
 ```
+
+`login local` tells the device to authenticate remote users using usernames and passwords stored in the local user database.
+
+This is different from:
+
+```text
+login
+```
+
+which uses a password configured directly on the VTY line.
 
 ---
 
@@ -108,56 +129,56 @@ login local
 
 Remote login authentication and privileged EXEC access are separate.
 
-A successful remote login can place the administrator in User EXEC mode:
+After successfully logging in remotely, the session can begin in User EXEC mode:
 
 ```text
 R0>
 ```
 
-The `enable` command is then used to request Privileged EXEC mode.
+The `enable` command is then used to request privileged EXEC access.
 
 ```text
 R0> enable
 ```
 
-The configured enable secret controls access to:
+The configured enable secret is used to enter:
 
 ```text
 R0#
 ```
 
-The local username authenticates the remote user, while the enable secret controls access to privileged EXEC mode.
+The local username and password authenticate the remote user, while the enable secret controls access to privileged EXEC mode.
 
 ---
 
 ## SSH Preparation
 
-Before SSH could be enabled, each device was given a hostname and domain name.
+SSH requires additional configuration that Telnet does not.
+
+Each device was configured with a hostname and domain name.
 
 ```text
 hostname <device-name>
 ip domain-name <domain-name>
 ```
 
-The hostname and domain information are used as part of the RSA key-generation process.
+A local user account was already available for SSH authentication.
 
-A local user account was also configured so SSH connections could use username and password authentication.
+The hostname and domain name are also required before RSA keys can be generated.
 
 ---
 
 ## RSA Key Generation
 
-SSH requires cryptographic keys.
-
-RSA keys were generated on both network devices.
+RSA keys were generated on both devices.
 
 ```text
 crypto key generate rsa
 ```
 
-A key size large enough to support SSH version 2 was selected.
+The initial default key size of 512 bits was not large enough for SSH version 2 in Packet Tracer.
 
-The default 512-bit key was not sufficient for SSH version 2 in this Packet Tracer environment, so a larger key was generated.
+A larger RSA key size was generated so SSH version 2 could be used.
 
 ---
 
@@ -169,11 +190,11 @@ SSH version 2 was enabled on both devices.
 ip ssh version 2
 ```
 
-SSH provides encrypted remote management instead of the unencrypted connection used by Telnet.
+SSH provides encrypted remote CLI access, unlike Telnet.
 
 ---
 
-## VTY Authentication
+## SSH Authentication
 
 The VTY lines were configured to use the local username database.
 
@@ -182,46 +203,44 @@ line vty 0 15
  login local
 ```
 
-`login local` tells the device to authenticate remote users using the usernames and secrets configured locally on the device.
-
-This is different from `login`, which uses a password configured directly on the VTY line.
+This requires remote users to authenticate with the locally configured username and password.
 
 ---
 
 ## SSH Remote Access
 
-After SSH was configured, the administrator PC connected remotely to both devices.
+SSH was tested from PC-Admin against both devices.
 
 ```text
-ssh -l <username> <R0-IP>
+ssh -l cisco 192.168.10.1
 ```
 
 ```text
-ssh -l <username> <SW0-management-IP>
+ssh -l cisco 192.168.10.10
 ```
 
 ![SSH Access](./images/02-ssh-access.png)
 
-Successful authentication confirmed that:
+Successful connections confirmed that:
 
-- IP connectivity was working
+- The devices were reachable
 - SSH was enabled
 - RSA keys were available
-- The VTY lines accepted the connection
+- The VTY lines accepted SSH
 - Local authentication was working
 
 ---
 
 ## VTY Hardening
 
-After SSH was verified, the VTY lines were restricted so that SSH was the only permitted remote-access protocol.
+After SSH was verified, the VTY lines were restricted to accept SSH only.
 
 ```text
 line vty 0 15
  transport input ssh
 ```
 
-This keeps remote CLI management available while preventing Telnet connections.
+This removes Telnet as an accepted remote-access method while keeping SSH available.
 
 ---
 
@@ -229,7 +248,7 @@ This keeps remote CLI management available while preventing Telnet connections.
 
 ## SSH Status
 
-SSH configuration was verified on each device.
+SSH status was verified on both devices.
 
 ```text
 show ip ssh
@@ -237,37 +256,45 @@ show ip ssh
 
 ![SSH Status](./images/03-ssh-status.png)
 
-The output confirms that SSH is enabled and version 2 is being used.
+The output confirms that SSH is enabled and version 2 is active.
 
 ---
 
-## SSH Access Verification
+## Successful SSH Access
 
-The administrator PC successfully connected to R0 and SW0 using SSH.
+SSH connections were tested again after the VTY lines were hardened.
 
 ```text
-ssh -l <username> <device-IP>
+ssh -l cisco 192.168.10.1
+```
+
+```text
+ssh -l cisco 192.168.10.10
 ```
 
 ![Successful SSH Login](./images/04-successful-ssh-login.png)
 
-This confirms that secure remote CLI access is working.
+Both devices remained remotely accessible through SSH.
 
 ---
 
 ## Telnet Blocking Test
 
-After the VTY lines were restricted to SSH, another Telnet connection was attempted.
+After the VTY lines were restricted to SSH, Telnet was tested again.
 
 ```text
-telnet <device-IP>
+telnet 192.168.10.1
+```
+
+```text
+telnet 192.168.10.10
 ```
 
 ![Telnet Blocked](./images/05-telnet-blocked.png)
 
-The connection failed even though the device was still reachable by IP.
+The Telnet connections failed even though both devices were still reachable by IP.
 
-This confirms that the failure was caused by the remote-access policy rather than a network connectivity problem.
+This confirms that the failure was caused by the VTY remote-access policy rather than a network connectivity problem.
 
 ---
 
@@ -277,15 +304,15 @@ An SSH connection was attempted using incorrect login information.
 
 ![Failed Authentication](./images/06-failed-authentication.png)
 
-The device rejected the authentication attempt.
+The device rejected the login attempt.
 
-This shows that reaching the SSH service does not automatically provide access to the device.
+This confirms that reaching the SSH service does not automatically provide administrative access.
 
 ---
 
 ## Active Session Verification
 
-While connected through SSH, the active remote session was verified from the network device.
+While connected through SSH, the remote session was verified from the network device.
 
 ```text
 show users
@@ -299,59 +326,61 @@ show ssh
 
 ![Active SSH Session](./images/07-active-ssh-session.png)
 
-This confirms that the SSH session is active on the device.
+The output confirms that an SSH session is active.
 
 ---
 
 ## VTY Configuration Verification
 
-The final VTY configuration was reviewed to verify the remote-access policy.
+The final VTY configuration was reviewed.
 
 ```text
 show running-config | section line vty
 ```
 
-The VTY lines should show:
+The important settings are:
 
 ```text
 login local
 transport input ssh
 ```
 
-This confirms that local authentication is being used and only SSH is accepted for remote CLI access.
+This confirms that remote users authenticate through the local user database and that SSH is the only accepted remote-access protocol.
 
 ---
 
 ## Authentication Differences
 
-Several different authentication settings are used in this lab, and each serves a different purpose.
+The authentication settings used in this lab serve different purposes.
 
 | Configuration | Purpose |
 |---|---|
 | `login` | Uses the password configured directly on the VTY line |
 | `login local` | Uses usernames and passwords stored locally on the device |
-| Local username | Identifies and authenticates the remote user |
+| Local username | Authenticates the remote user |
 | Enable secret | Controls access from User EXEC mode to Privileged EXEC mode |
 
-A remote user can successfully authenticate to the device but still require the enable secret before entering privileged EXEC mode.
+Remote login and privileged EXEC access are separate authentication steps.
 
 ---
 
 ## Key Takeaways
 
 - Telnet and SSH both provide remote CLI access to network devices
-- VTY lines are used to control remote terminal sessions
+- Cisco IOS already contains VTY lines for remote terminal sessions
+- `line vty 0 15` selects existing VTY lines for configuration
 - A device must have working IP connectivity before remote management can work
+- VTY authentication must be configured before remote access can be used
 - Telnet provides remote access but does not encrypt the session
 - SSH provides encrypted remote administrative access
-- SSH requires a hostname, domain information, RSA keys, and authentication
-- SSH version 2 requires an appropriate RSA key size
+- SSH requires a hostname, domain name, RSA keys, and authentication
+- SSH version 2 requires an RSA key large enough to support it
 - `login` and `login local` use different authentication methods
 - A local username authenticates the remote user
 - The enable secret controls access to privileged EXEC mode
 - `transport input ssh` prevents Telnet while keeping SSH available
-- A device can respond to ping while still rejecting Telnet or SSH
-- Connectivity failures, protocol failures, and authentication failures are separate problems
+- A device can still respond to ping while rejecting Telnet or SSH
+- Connectivity, protocol configuration, and authentication are separate parts of remote access
 - Remote management should be verified from both the client and network-device sides
 
 ---
