@@ -161,12 +161,10 @@ R0#
 
 The two authentication steps serve different purposes:
 
-```text
 | Access Stage | Credential Used |
 |---|---|
 | Remote login | Local username and password |
 | User EXEC → Privileged EXEC | Enable secret |
-```
 
 Even though both were configured with the word `secret`, they are separate.
 
