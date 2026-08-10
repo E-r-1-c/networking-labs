@@ -162,17 +162,10 @@ R0#
 The two authentication steps serve different purposes:
 
 ```text
-Local username/password
-        ↓
-Remote login
-        ↓
-User EXEC mode >
-        ↓
-enable
-        ↓
-Enable secret
-        ↓
-Privileged EXEC mode #
+| Access Stage | Credential Used |
+|---|---|
+| Remote login | Local username and password |
+| User EXEC → Privileged EXEC | Enable secret |
 ```
 
 Even though both were configured with the word `secret`, they are separate.
