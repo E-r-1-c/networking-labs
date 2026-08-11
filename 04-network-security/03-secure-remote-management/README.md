@@ -4,7 +4,7 @@
 
 This lab demonstrates how Cisco network devices can be managed remotely and how that access can be secured.
 
-The lab begins with basic Telnet access using a password configured directly on the VTY lines. It then transitions to SSH, which uses a local username and password and encrypts the remote session. Finally, the VTY lines are restricted to SSH only and an ACL is applied directly to the VTY lines so only the administrator PC can remotely manage the devices.
+The lab begins by using Telnet to verify basic remote CLI access with VTY password authentication. SSH is then configured using local authentication to provide encrypted remote access. Finally, the VTY lines are restricted to SSH only, and a VTY ACL is added so only the administrator PC can remotely manage the devices.
 
 ---
 
