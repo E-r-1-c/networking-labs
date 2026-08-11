@@ -77,7 +77,7 @@ telnet 192.168.10.1
 
 The VTY password was entered when prompted.
 
-![Telnet Access](./images/telnet-access.png)
+![Telnet Access](./images/0-telnet-access.png)
 
 The connection succeeded, confirming that remote CLI access through Telnet was working.
 
@@ -217,17 +217,19 @@ ssh -l cisco 192.168.10.1
 
 The connection succeeded, confirming that legitimate SSH management remained available.
 
+No additional screenshot is needed because successful SSH access was already shown earlier.
+
 ---
 
 ## Telnet Blocking Test
 
-PC-Admin attempted to connect to R0 using Telnet after the VTY lines were restricted to SSH.
+PC-Admin attempted to connect to R0 using Telnet after the VTY transport setting was restricted.
 
 ```text
 telnet 192.168.10.1
 ```
 
-![Telnet Blocked](./images/05-telnet-blocked.png)
+![Telnet Blocked](./images/04-telnet-blocked.png)
 
 Telnet failed while normal IP connectivity remained available.
 
@@ -250,6 +252,8 @@ ssh -l cisco 192.168.10.1
 
 The connection succeeded because PC-Admin is permitted by the VTY ACL.
 
+No additional screenshot is needed because successful SSH access has already been demonstrated.
+
 ---
 
 ## Unauthorized Management Test
@@ -260,7 +264,7 @@ PC-Test at `192.168.10.12` attempted to connect to R0 through SSH.
 ssh -l cisco 192.168.10.1
 ```
 
-![Unauthorized SSH Blocked](./images/07-unauthorized-ssh-blocked.png)
+![Unauthorized SSH Blocked](./images/05-unauthorized-ssh-blocked.png)
 
 The SSH connection failed.
 
@@ -283,9 +287,9 @@ PC-Admin attempted an SSH connection using incorrect credentials.
 ssh -l wronguser 192.168.10.1
 ```
 
-![Failed Authentication](./images/08-failed-authentication.png)
+![Failed Authentication](./images/06-failed-authentication.png)
 
-The connection reached the device, but authentication failed.
+The SSH connection reached the device, but authentication failed.
 
 This confirmed that being an authorized source does not bypass user authentication.
 
@@ -299,9 +303,9 @@ While PC-Admin had an active SSH connection to R0, the session was verified from
 show ssh
 ```
 
-![Active SSH Session](./images/09-active-ssh-session.png)
+![Active SSH Session](./images/07-active-ssh-session.png)
 
-The output confirmed that an SSH session for the `cisco` user was active.
+The output showed the active SSH session for the `cisco` user.
 
 ---
 
@@ -313,7 +317,7 @@ The final VTY configuration was verified with:
 show running-config | section line vty
 ```
 
-![Final VTY Configuration](./images/10-final-vty-config.png)
+![Final VTY Configuration](./images/08-final-vty-config.png)
 
 The important settings are:
 
