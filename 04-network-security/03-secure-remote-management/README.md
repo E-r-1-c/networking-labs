@@ -77,7 +77,7 @@ telnet 192.168.10.1
 
 The VTY password was entered when prompted.
 
-![Telnet Access](./images/0-telnet-access.png)
+![Telnet Access](./images/telnet-access.png)
 
 The connection succeeded, confirming that remote CLI access through Telnet was working.
 
@@ -215,9 +215,7 @@ After restricting the VTY lines to SSH, PC-Admin was used to verify that SSH sti
 ssh -l cisco 192.168.10.1
 ```
 
-![SSH Access After Hardening](./images/04-successful-ssh-login.png)
-
-The connection succeeded, confirming that SSH remained available after the VTY transport setting was restricted.
+The connection succeeded, confirming that legitimate SSH management remained available.
 
 ---
 
@@ -244,13 +242,11 @@ This confirmed that the VTY transport setting was specifically blocking Telnet.
 
 ## Authorized Management Test
 
-After the VTY ACL was applied, PC-Admin at `192.168.10.11` attempted another SSH connection.
+After the VTY ACL was applied, PC-Admin at `192.168.10.11` was used to verify SSH access.
 
 ```text
 ssh -l cisco 192.168.10.1
 ```
-
-![Authorized SSH Access](./images/06-authorized-ssh-access.png)
 
 The connection succeeded because PC-Admin is permitted by the VTY ACL.
 
@@ -266,7 +262,9 @@ ssh -l cisco 192.168.10.1
 
 ![Unauthorized SSH Blocked](./images/07-unauthorized-ssh-blocked.png)
 
-The SSH connection failed, but PC-Test could still ping R0.
+The SSH connection failed.
+
+PC-Test could still ping R0.
 
 ```text
 PC-Test ping → Works
