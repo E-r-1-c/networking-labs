@@ -68,7 +68,7 @@ line vty 0 15
  login
 ```
 
-`password` sets the VTY password, while `login` tells the VTY lines to require it.
+The VTY password is set with `password`, and `login` tells the VTY lines to require it for remote access.
 
 PC-Admin then used Packet Tracer's Telnet/SSH application to connect to:
 
