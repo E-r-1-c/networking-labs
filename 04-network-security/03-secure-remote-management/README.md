@@ -77,7 +77,7 @@ telnet 192.168.10.1
 
 The VTY password was entered when prompted.
 
-![Telnet Access](./images/telnet-access.png)
+![Telnet Access](./images/0-telnet-access.png)
 
 The connection succeeded, confirming that remote CLI access through Telnet was working.
 
