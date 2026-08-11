@@ -2,26 +2,27 @@
 
 ## Overview
 
-This lab demonstrates how Cisco network devices can be managed remotely and how that management access can be secured.
+This lab demonstrates how Cisco network devices can be managed remotely and how that access can be secured.
 
-The lab begins by using Telnet to verify basic remote CLI access with local authentication. SSH is then configured to provide encrypted remote access. Finally, the VTY lines are hardened to allow only SSH, and a VTY ACL is added so only the administrator PC can remotely manage the devices.
+The lab begins with basic Telnet access using a password configured directly on the VTY lines. It then transitions to SSH, which uses a local username and password and encrypts the remote session. Finally, the VTY lines are restricted to SSH only and an ACL is applied directly to the VTY lines so only the administrator PC can remotely manage the devices.
 
 ---
 
 ## Objectives
 
 - Configure basic connectivity for remote management
-- Configure VTY authentication
-- Test remote access using Telnet
+- Configure basic Telnet access
+- Understand VTY password authentication
 - Configure Privileged EXEC access
+- Create a local user account for SSH
 - Configure SSH using RSA keys and SSH version 2
-- Test remote access using SSH
-- Restrict VTY lines to SSH only
+- Understand the difference between `login` and `login local`
+- Restrict the VTY lines to SSH only
 - Verify Telnet is blocked
-- Restrict VTY access to an authorized management PC
-- Verify unauthorized management access is blocked
-- Test failed authentication
-- Verify the final VTY configuration
+- Restrict remote management by source IP using a VTY ACL
+- Test authorized and unauthorized management access
+- Verify failed authentication
+- Verify the final remote-management configuration
 
 ---
 
@@ -31,7 +32,7 @@ The lab begins by using Telnet to verify basic remote CLI access with local auth
 
 The topology uses one router, one switch, and two PCs on the same network.
 
-PC-Admin is the authorized management workstation used for Telnet and SSH access. PC-Test is added to verify that the VTY ACL can block unauthorized remote management while normal network connectivity still works.
+PC-Admin is used for legitimate Telnet and SSH management. PC-Test is used later to verify that the VTY ACL can block unauthorized remote management without blocking normal network connectivity.
 
 ---
 
@@ -42,13 +43,13 @@ PC-Admin is the authorized management workstation used for Telnet and SSH access
 | R0 | `192.168.10.1` | Router and remotely managed device |
 | SW0 | `192.168.10.10` | Switch management address |
 | PC-Admin | `192.168.10.11` | Authorized management workstation |
-| PC-Test | `192.168.10.12` | Unauthorized workstation used for ACL testing |
+| PC-Test | `192.168.10.12` | Workstation used for unauthorized-access testing |
 
 ---
 
 ## Baseline Connectivity
 
-Before configuring remote access, connectivity was verified between the PCs and the network devices.
+Before configuring remote access, basic connectivity was verified.
 
 From PC-Admin:
 
@@ -59,75 +60,73 @@ ping 192.168.10.10
 
 PC-Test was also able to reach R0 and SW0.
 
-Successful pings confirmed that normal IP connectivity was working before remote-management configuration began.
+Successful pings confirmed that normal IP connectivity was working before Telnet or SSH was configured.
 
-This provides a baseline for later testing. If Telnet or SSH fails while ping still works, the problem is related to remote access rather than basic connectivity.
-
----
-
-# Telnet Configuration
-
-## Local User Authentication
-
-A local user account was created on both R0 and SW0.
-
-```text
-username cisco secret cisco
-```
-
-For this lab:
-
-```text
-Username: cisco
-Password: cisco
-```
-
-This creates an account in the device's local user database.
-
-The account is not something Telnet specifically requires. Telnet requires the VTY lines to have an authentication method.
-
-For example, VTY authentication could use a password configured directly on the VTY lines, or it can use the device's local username database.
-
-This lab uses the local database because the same account can later also be used for SSH.
+This gives the lab a baseline. If a remote-management connection fails later while ping still works, the failure is related to remote access rather than basic connectivity.
 
 ---
 
-## VTY Authentication
+# Telnet
 
-Cisco IOS uses VTY lines for remote terminal sessions.
+## VTY Lines
 
-The VTY lines were selected and configured to authenticate against the local user database.
+Cisco IOS uses VTY lines for remote CLI sessions.
+
+The VTY lines were selected on both R0 and SW0:
 
 ```text
 line vty 0 15
- login local
 ```
 
-`line vty 0 15` selects VTY lines 0 through 15.
+`line vty 0 15` selects VTY lines 0 through 15 so their remote-access settings can be configured.
 
-`login local` tells those lines to use the usernames and passwords stored in the local user database.
+---
+
+## Telnet Authentication
+
+For the first Telnet test, a password was configured directly on the VTY lines.
+
+```text
+line vty 0 15
+ password cisco
+ login
+```
+
+`password cisco` configures the password stored on the VTY lines.
+
+`login` tells the VTY lines to require that password when someone connects remotely.
+
+No username is required with this authentication method.
 
 The relationship is:
 
 ```text
-username cisco secret cisco
-        ↓
-Creates local account
+password cisco
+      ↓
+Creates the VTY password
 
-login local
-        ↓
-Tells VTY lines to use that account
+login
+      ↓
+Tells the VTY lines to require it
 ```
 
-At this point, an authentication method exists for remote CLI sessions.
+Telnet does not specifically require a username and password.
+
+It only requires the VTY lines to have an authentication method.
+
+At this stage, the VTY password provides that authentication.
 
 ---
 
 ## VTY Transport Behavior
 
-The VTY lines also control which remote-management protocols are accepted.
+Authentication and transport are separate settings.
 
-This is controlled with:
+Authentication controls how a remote user proves they are allowed to log in.
+
+Transport controls which remote-access protocols the VTY lines accept.
+
+The transport setting is controlled with:
 
 ```text
 transport input
@@ -148,26 +147,24 @@ transport input ssh
 allows only SSH.
 
 ```text
-transport input ssh telnet
+transport input telnet ssh
 ```
 
-allows both SSH and Telnet.
+allows both.
 
-No explicit `transport input` command was configured during the initial part of this lab.
+No explicit `transport input` command was configured during the initial Telnet test.
 
-On the Packet Tracer devices used here, Telnet was already accepted by the existing VTY transport settings. Later, after SSH was configured, SSH was also accepted without changing the VTY transport setting.
+On the Packet Tracer devices used in this lab, Telnet was already accepted by the existing VTY transport settings.
 
-The protocol is explicitly restricted later in the lab.
+The transport policy is explicitly restricted later after SSH is working.
 
 ---
 
 ## Telnet Remote Access
 
-Telnet was tested first to establish a working remote-management baseline.
+PC-Admin was used to test Telnet through Packet Tracer's Telnet/SSH application.
 
-On PC-Admin, the Packet Tracer Telnet/SSH application was opened and Telnet was selected.
-
-Connections were tested to:
+Telnet connections were made to:
 
 ```text
 R0
@@ -181,10 +178,9 @@ SW0
 192.168.10.10
 ```
 
-The local account was used to authenticate:
+The VTY password was entered when prompted:
 
 ```text
-Username: cisco
 Password: cisco
 ```
 
@@ -196,23 +192,23 @@ This confirmed that:
 
 - IP connectivity was working
 - The VTY lines were accepting Telnet
-- `login local` was using the local user database
-- The local username and password were valid
+- The VTY password was configured correctly
+- `login` was requiring that password
 - Remote CLI access was working
 
-Telnet provides remote CLI access, but the traffic is not encrypted.
+Telnet provides remote CLI access, but its traffic is not encrypted.
 
 ---
 
 # Privileged EXEC Access
 
-After logging in remotely, the session entered User EXEC mode.
+After connecting through Telnet, the session entered User EXEC mode.
 
 ```text
 R0>
 ```
 
-The local username and password allowed the remote login, but they did not automatically provide Privileged EXEC access.
+The VTY password allowed access to the remote CLI, but it did not provide Privileged EXEC access.
 
 The remote session was exited and the device console was used to configure an enable secret.
 
@@ -220,7 +216,7 @@ The remote session was exited and the device console was used to configure an en
 enable secret cisco
 ```
 
-After reconnecting remotely, the `enable` command could be used.
+After reconnecting through Telnet:
 
 ```text
 R0> enable
@@ -228,42 +224,134 @@ Password:
 R0#
 ```
 
-The two credentials protect different stages of access:
+These passwords protect different stages of access.
 
-| Access Stage | Credential Used |
+| Access Stage | Authentication |
 |---|---|
-| Remote login | Local username and password |
+| Remote Telnet login | VTY password |
 | User EXEC `>` → Privileged EXEC `#` | Enable secret |
 
-The local account:
+The VTY password controls entry into the remote session.
+
+The enable secret separately controls access to Privileged EXEC mode.
+
+---
+
+# Transition from Telnet to SSH
+
+Telnet proved that remote CLI access was working, but Telnet does not encrypt the session.
+
+SSH is now configured to replace Telnet with encrypted remote management.
+
+This also changes how users authenticate.
+
+For Telnet, this lab used:
+
+```text
+password cisco
+login
+```
+
+SSH will instead use a local username and password through:
+
+```text
+username cisco secret cisco
+login local
+```
+
+The VTY lines remain the same.
+
+What changes is their authentication method and the remote-access protocol being used.
+
+---
+
+# SSH
+
+## Local User Account
+
+A local user account was created on both R0 and SW0.
 
 ```text
 username cisco secret cisco
 ```
 
-allows the user to authenticate to the VTY session because the VTY lines use:
+For this lab:
 
 ```text
-login local
+Username: cisco
+Password: cisco
 ```
 
-The separate command:
+This command only creates the local account on the device.
 
-```text
-enable secret cisco
-```
+It does not automatically tell the VTY lines to use it.
 
-protects access to Privileged EXEC mode.
+That happens with `login local`.
 
 ---
 
-# SSH Configuration
+## Change VTY Authentication
+
+The VTY lines were changed from the simple VTY password method to local username authentication.
+
+```text
+line vty 0 15
+ login local
+```
+
+`login local` tells the VTY lines to authenticate users against the device's local username database.
+
+The important change is:
+
+```text
+Telnet stage
+
+password cisco
+login
+```
+
+becomes:
+
+```text
+SSH stage
+
+username cisco secret cisco
+
+line vty 0 15
+ login local
+```
+
+The original VTY password is no longer the authentication method once `login local` is used.
+
+The local username and password are now used instead.
+
+This authentication method also works with Telnet, but it is being introduced here because SSH needs username-based authentication in this lab.
+
+---
+
+## Telnet vs SSH Authentication
+
+The difference is easier to see side by side.
+
+| Telnet Stage | SSH Stage |
+|---|---|
+| VTY password | Local username and password |
+| `password cisco` | `username cisco secret cisco` |
+| `login` | `login local` |
+| No username required | Username required |
+| Unencrypted session | Encrypted session |
+
+Telnet could also use `login local`.
+
+The purpose of using `login` first is to demonstrate the simpler VTY password method before moving to the local-account authentication used with SSH.
+
+---
 
 ## SSH Preparation
 
-SSH requires additional configuration that Telnet does not.
+SSH requires additional configuration before it can operate.
 
-A hostname was configured on each network device.
+A hostname was configured on each device.
 
 R0:
 
@@ -283,7 +371,7 @@ A domain name was also configured.
 ip domain-name <domain-name>
 ```
 
-The hostname and domain name provide the information IOS uses when generating the RSA key pair.
+The hostname and domain name provide information IOS uses during RSA key generation.
 
 ---
 
@@ -295,25 +383,23 @@ RSA keys were generated on both devices.
 crypto key generate rsa
 ```
 
-A key size of at least 768 bits was selected.
+A modulus of at least 768 bits was selected.
 
 The smaller 512-bit value was not sufficient for SSH version 2 in this lab.
 
 The RSA key pair provides the cryptographic keys used by the SSH server.
 
-Generating the RSA keys is also what makes the SSH service available on the device.
-
 ---
 
 ## SSH Version 2
 
-After generating the RSA keys, SSH version 2 was explicitly selected.
+After the RSA keys were generated, SSH version 2 was explicitly configured.
 
 ```text
 ip ssh version 2
 ```
 
-The configuration order used in this lab is:
+The SSH configuration sequence is:
 
 ```text
 Hostname
@@ -325,52 +411,15 @@ RSA keys
 SSH version 2
 ```
 
-The RSA keys are created first so the device has the cryptographic keys required by SSH.
+The RSA key pair is generated first.
 
 `ip ssh version 2` then tells the device to use SSH version 2.
 
 ---
 
-## SSH Authentication
-
-No new user account was needed for SSH.
-
-The VTY lines were already configured with:
-
-```text
-login local
-```
-
-and the device already had:
-
-```text
-username cisco secret cisco
-```
-
-SSH therefore uses the same local account that was previously used during the Telnet test.
-
-The important difference is not the account.
-
-The difference is the transport protocol:
-
-| Telnet | SSH |
-|---|---|
-| Remote CLI access | Remote CLI access |
-| Uses VTY lines | Uses VTY lines |
-| Uses local authentication in this lab | Uses local authentication in this lab |
-| Unencrypted | Encrypted |
-| Did not require RSA keys | Requires RSA keys |
-| No SSH version configuration | SSH version 2 configured |
-
-The local username/password handles authentication for both protocols in this lab.
-
-SSH adds encryption and its own SSH configuration.
-
----
-
 ## SSH Remote Access
 
-SSH was tested using the Telnet/SSH application on PC-Admin.
+PC-Admin was used to test SSH through Packet Tracer's Telnet/SSH application.
 
 SSH connections were made to:
 
@@ -386,7 +435,7 @@ SW0
 192.168.10.10
 ```
 
-The same local account was used:
+The local account was used:
 
 ```text
 Username: cisco
@@ -395,33 +444,35 @@ Password: cisco
 
 ![SSH Access](./images/02-ssh-access.png)
 
-Both connections succeeded.
+Both SSH connections succeeded.
 
 This confirmed that:
 
-- IP connectivity was working
-- The local account was working
-- VTY authentication was working
+- The devices were reachable
+- The local username existed
+- `login local` was using the local user database
 - RSA keys were available
 - SSH version 2 was active
 - The VTY lines were accepting SSH
 
-At this point, SSH worked, but Telnet had not yet been explicitly blocked.
+At this point, SSH works.
+
+Telnet has not yet been explicitly blocked.
 
 ---
 
 # VTY Transport Hardening
 
-After SSH was confirmed to work, the VTY lines were restricted to SSH.
+Now that SSH is confirmed to work, Telnet can be removed from the VTY lines.
 
 ```text
 line vty 0 15
  transport input ssh
 ```
 
-`transport input` controls which incoming remote-management protocols can use the VTY lines.
+`transport input` controls which incoming remote-access protocols can use the VTY lines.
 
-Before this command, the Packet Tracer devices used in this lab accepted both Telnet and SSH once each protocol was available.
+Before this command, the Packet Tracer devices used in this lab accepted Telnet and later accepted SSH once SSH was configured.
 
 After:
 
@@ -429,25 +480,7 @@ After:
 transport input ssh
 ```
 
-the VTY lines accept only SSH.
-
-The VTY lines are entered again because a different part of their configuration is now being changed.
-
-Earlier:
-
-```text
-login local
-```
-
-configured authentication.
-
-Now:
-
-```text
-transport input ssh
-```
-
-configures the allowed transport protocol.
+only SSH is accepted.
 
 The important VTY configuration is now:
 
@@ -457,19 +490,16 @@ line vty 0 15
  transport input ssh
 ```
 
-This means:
+These commands perform different jobs.
 
-```text
-login local
-        ↓
-Use local username/password
+| Command | Purpose |
+|---|---|
+| `login local` | Use the local username database for authentication |
+| `transport input ssh` | Allow only SSH as the remote-access protocol |
 
-transport input ssh
-        ↓
-Allow SSH only
-```
+One controls authentication.
 
-These commands solve different problems.
+The other controls transport.
 
 ---
 
@@ -485,43 +515,45 @@ show ip ssh
 
 ![SSH Status](./images/03-ssh-status.png)
 
-The output confirms that SSH is active and SSH version 2 is being used.
+The output confirms that SSH is active and version 2 is being used.
 
 ---
 
 ## SSH Access After Hardening
 
-PC-Admin was used to test SSH again through the Packet Tracer Telnet/SSH application.
+PC-Admin was used to test SSH again through the Telnet/SSH application.
 
-Connections to both devices remained successful.
+SSH access to both R0 and SW0 remained successful.
 
 ![Successful SSH Login](./images/04-successful-ssh-login.png)
 
-This confirms that restricting the VTY lines to SSH did not break legitimate SSH management.
+This confirms that restricting the VTY lines to SSH did not break legitimate remote management.
 
 ---
 
 ## Telnet Blocking Test
 
-Telnet was then selected in the PC-Admin Telnet/SSH application and connections were attempted to R0 and SW0.
+PC-Admin was then switched back to Telnet in the Telnet/SSH application.
+
+Connections were attempted to R0 and SW0.
 
 ![Telnet Blocked](./images/05-telnet-blocked.png)
 
-The Telnet connections failed.
+Both Telnet connections failed.
 
-Ping was tested again and still succeeded.
+Ping still succeeded.
 
-This produced:
+The result was:
 
 ```text
-Ping       → Works
-SSH        → Works
-Telnet     → Fails
+Ping    → Works
+SSH     → Works
+Telnet  → Fails
 ```
 
-The devices are still reachable.
+This confirms that the devices are still reachable.
 
-Telnet is specifically being rejected because the VTY lines now contain:
+Telnet is specifically being rejected because the VTY lines contain:
 
 ```text
 transport input ssh
@@ -531,11 +563,11 @@ transport input ssh
 
 # VTY ACL Hardening
 
-Restricting the VTY lines to SSH controls **how** remote management connections can be made.
+Restricting the VTY lines to SSH controls which protocol may be used.
 
-It does not control **which source devices** are allowed to make those connections.
+It still does not control which source devices are allowed to attempt remote management.
 
-A VTY ACL was added to restrict management access to PC-Admin.
+A VTY ACL was added for that purpose.
 
 PC-Admin:
 
@@ -566,16 +598,16 @@ ip access-list standard VTY-MANAGEMENT
 
 Only PC-Admin is explicitly permitted.
 
-The ACL is then applied to the VTY lines.
+The ACL was then applied directly to the VTY lines.
 
 ```text
 line vty 0 15
  access-class VTY-MANAGEMENT in
 ```
 
-This is different from an ACL used to filter normal routed traffic.
+This differs from an ACL used to filter normal routed traffic.
 
-For normal interface traffic, an ACL might be applied using:
+An interface ACL is applied using:
 
 ```text
 ip access-group
@@ -583,7 +615,7 @@ ip access-group
 
 under an interface.
 
-For remote-management access, this lab uses:
+This management ACL is applied using:
 
 ```text
 access-class
@@ -591,32 +623,32 @@ access-class
 
 under the VTY lines.
 
-The ACL therefore controls access to the remote-management lines themselves.
+It therefore controls access to the remote-management lines rather than normal traffic passing through the device.
 
 ---
 
-## VTY Transport vs VTY ACL
+## Transport Restriction vs VTY ACL
 
-The two controls perform different jobs.
+These controls solve different problems.
 
 | Configuration | Controls |
 |---|---|
-| `transport input ssh` | Which remote-management protocol is allowed |
+| `transport input ssh` | Which remote-management protocol is accepted |
 | `access-class VTY-MANAGEMENT in` | Which source IP addresses may access the VTY lines |
 
-Together:
+The remote-management process now looks like:
 
 ```text
-Source IP
-   ↓
+Source device
+      ↓
 VTY ACL
-   ↓
-Allowed source?
-   ↓
+      ↓
+Source allowed?
+      ↓
 SSH-only transport
-   ↓
-Local authentication
-   ↓
+      ↓
+Local username/password
+      ↓
 Remote CLI
 ```
 
@@ -626,7 +658,7 @@ Remote CLI
 
 PC-Admin was tested after the VTY ACL was applied.
 
-Using the Telnet/SSH application, SSH connections were attempted to:
+SSH connections were made to:
 
 ```text
 192.168.10.1
@@ -635,15 +667,15 @@ Using the Telnet/SSH application, SSH connections were attempted to:
 
 ![Authorized SSH Access](./images/06-authorized-ssh-access.png)
 
-Both SSH connections succeeded.
+Both connections succeeded.
 
-PC-Admin is permitted because its source address is:
+PC-Admin is permitted because its source address:
 
 ```text
 192.168.10.11
 ```
 
-which matches:
+matches:
 
 ```text
 permit host 192.168.10.11
@@ -653,30 +685,32 @@ permit host 192.168.10.11
 
 ## Unauthorized Management Test
 
-PC-Test was then used to attempt SSH connections to both devices.
+PC-Test was then used to attempt SSH access.
 
-PC-Test uses:
+Its address is:
 
 ```text
 192.168.10.12
 ```
 
+SSH connections were attempted to both R0 and SW0.
+
 ![Unauthorized SSH Blocked](./images/07-unauthorized-ssh-blocked.png)
 
 The SSH connections failed.
 
-PC-Test was then used to ping R0 and SW0.
+PC-Test was then used to ping both devices.
 
 The pings still succeeded.
 
-The result is:
+The result was:
 
 ```text
 PC-Test ping → Works
 PC-Test SSH  → Fails
 ```
 
-This proves that PC-Test still has normal network connectivity.
+This proves that PC-Test still has normal IP connectivity.
 
 Only its access to the VTY management lines is being denied.
 
@@ -684,25 +718,25 @@ Only its access to the VTY management lines is being denied.
 
 ## Failed Authentication Test
 
-PC-Admin is an authorized source, so it was used for the authentication failure test.
+PC-Admin is an authorized source, so it was used to test failed authentication.
 
 An SSH connection was attempted using incorrect credentials.
 
 ![Failed Authentication](./images/08-failed-authentication.png)
 
-The device accepted the connection attempt from PC-Admin because its source IP is allowed by the VTY ACL.
+The connection was allowed to reach the device because PC-Admin is permitted by the VTY ACL and SSH is an allowed protocol.
 
-The login then failed because the username or password was incorrect.
+The login was then rejected because the username or password was incorrect.
 
-This demonstrates that source authorization and user authentication are separate controls.
+This shows that source authorization and user authentication are separate checks.
 
 ```text
-Source allowed by VTY ACL
-        ↓
-SSH allowed by VTY transport
-        ↓
+Source allowed
+      ↓
+SSH allowed
+      ↓
 Username/password checked
-        ↓
+      ↓
 Login accepted or rejected
 ```
 
@@ -710,7 +744,7 @@ Login accepted or rejected
 
 ## Active SSH Session
 
-While a valid SSH connection was active, the session was checked from the network device.
+While a valid SSH session was active, the connection was verified from the network device.
 
 ```text
 show users
@@ -745,26 +779,29 @@ line vty 0 15
  access-class VTY-MANAGEMENT in
 ```
 
-Each command controls a different part of remote management.
+Each setting controls a different part of remote management.
 
 | Setting | Purpose |
 |---|---|
-| `login local` | Authenticate users against the local user database |
-| `transport input ssh` | Allow only SSH connections |
+| `login local` | Authenticate users using the local username database |
+| `transport input ssh` | Allow only SSH |
 | `access-class VTY-MANAGEMENT in` | Allow VTY access only from approved source addresses |
 
-The local account and enable secret are separate from these VTY controls:
+The local account itself is created separately:
 
-| Configuration | Purpose |
-|---|---|
-| `username cisco secret cisco` | Creates the local remote-login account |
-| `enable secret cisco` | Protects access to Privileged EXEC mode |
+```text
+username cisco secret cisco
+```
+
+Privileged EXEC access is also protected separately:
+
+```text
+enable secret cisco
+```
 
 ---
 
 ## Final Remote Management Policy
-
-The finished configuration creates several separate checks.
 
 | Test | Expected Result | Reason |
 |---|---|---|
@@ -774,17 +811,17 @@ The finished configuration creates several separate checks.
 | PC-Admin Telnet | Blocked | VTY lines accept SSH only |
 | PC-Test SSH | Blocked | Source is not permitted by VTY ACL |
 | PC-Admin SSH with wrong credentials | Blocked | Local authentication fails |
-| PC-Admin SSH with correct credentials | Allowed | Source, protocol, and authentication all pass |
+| PC-Admin SSH with correct credentials | Allowed | Source, protocol, and authentication succeed |
 | Valid remote user + correct enable secret | Privileged EXEC allowed | Enable authentication succeeds |
 
-The complete access process is:
+The completed access process is:
 
 ```text
 IP connectivity
       ↓
-Source allowed by VTY ACL
+Source permitted by VTY ACL
       ↓
-Protocol allowed by VTY transport
+SSH permitted by transport policy
       ↓
 Local username/password accepted
       ↓
@@ -799,28 +836,30 @@ Privileged EXEC mode #
 
 ## Key Takeaways
 
-- Telnet and SSH both provide remote CLI access through VTY lines
-- VTY lines require an authentication method before remote users can log in
-- Telnet does not specifically require a local username database
-- This lab uses `login local` so Telnet and SSH can use the same local account
-- `username cisco secret cisco` creates the account
-- `login local` tells the VTY lines to use that account
-- The local account authenticates the remote login but does not automatically provide Privileged EXEC access
-- `enable secret` separately protects access from User EXEC mode to Privileged EXEC mode
+- Cisco IOS uses VTY lines for remote CLI sessions
+- Telnet and SSH can use the same VTY lines
+- Telnet only needs the VTY lines to have an authentication method
+- `password` plus `login` provides simple VTY password authentication
+- This method does not require a username
+- A local account is created separately with `username`
+- `login local` tells the VTY lines to use the local username database
+- In this lab, local authentication is introduced when moving from Telnet to SSH
+- Telnet could also use `login local`, but it is not required to use the local database
+- SSH uses username-based authentication in this lab
+- The same VTY lines are reused when moving from Telnet to SSH
 - Telnet provides unencrypted remote access
 - SSH provides encrypted remote access
-- SSH requires RSA keys before it can operate
-- SSH version 2 requires an appropriate RSA key size
-- RSA keys were generated before explicitly selecting SSH version 2
-- `transport input` controls which remote-management protocols may use the VTY lines
-- `transport input ssh` allows only SSH
-- `transport input telnet` allows only Telnet
-- `transport input ssh telnet` allows both
-- Before an explicit transport restriction was configured, the Packet Tracer devices in this lab accepted Telnet and later SSH
+- SSH requires RSA keys
+- SSH version 2 was selected after generating an appropriate RSA key pair
+- `transport input` controls which remote-management protocols can use the VTY lines
+- `transport input telnet` permits only Telnet
+- `transport input ssh` permits only SSH
+- `transport input telnet ssh` permits both
+- Before an explicit transport restriction was configured, the Packet Tracer devices in this lab accepted the available remote-access protocols
+- `enable secret` separately protects Privileged EXEC access
 - `access-class` applies an ACL directly to the VTY lines
-- A VTY ACL can restrict management access without blocking normal IP connectivity
-- VTY transport restrictions and VTY ACLs solve different problems
-- Connectivity, source authorization, protocol selection, user authentication, and privilege level are separate parts of remote management
+- A VTY ACL can block remote management from a source without blocking its normal network connectivity
+- Authentication, transport protocol, source authorization, and privilege level are separate controls
 
 ---
 
