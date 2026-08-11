@@ -83,19 +83,19 @@ The VTY lines also control which remote-access protocols they accept through `tr
 transport input telnet
 ```
 
-allows only Telnet.
+Allows only Telnet.
 
 ```text
 transport input ssh
 ```
 
-allows only SSH.
+Allows only SSH.
 
 ```text
 transport input telnet ssh
 ```
 
-allows both.
+Allows both.
 
 No explicit `transport input` command was configured at this point. On the Packet Tracer devices used in this lab, Telnet was already accepted by the existing VTY transport settings.
 
