@@ -77,7 +77,7 @@ telnet 192.168.10.1
 
 The VTY password was entered when prompted.
 
-![Telnet Access](./images/0-telnet-access.png)
+![Telnet Access](./images/telnet-access.png)
 
 The connection succeeded, confirming that remote CLI access through Telnet was working.
 
@@ -215,21 +215,21 @@ After restricting the VTY lines to SSH, PC-Admin was used to verify that SSH sti
 ssh -l cisco 192.168.10.1
 ```
 
-The connection succeeded, confirming that legitimate SSH management remained available.
+![SSH Access After Hardening](./images/04-successful-ssh-login.png)
 
-No additional screenshot is needed because successful SSH access was already shown earlier.
+The connection succeeded, confirming that SSH remained available after the VTY transport setting was restricted.
 
 ---
 
 ## Telnet Blocking Test
 
-PC-Admin attempted to connect to R0 using Telnet after the VTY transport setting was restricted.
+PC-Admin attempted to connect to R0 using Telnet after the VTY lines were restricted to SSH.
 
 ```text
 telnet 192.168.10.1
 ```
 
-![Telnet Blocked](./images/04-telnet-blocked.png)
+![Telnet Blocked](./images/05-telnet-blocked.png)
 
 Telnet failed while normal IP connectivity remained available.
 
@@ -244,15 +244,15 @@ This confirmed that the VTY transport setting was specifically blocking Telnet.
 
 ## Authorized Management Test
 
-After the VTY ACL was applied, PC-Admin at `192.168.10.11` was used to verify SSH access.
+After the VTY ACL was applied, PC-Admin at `192.168.10.11` attempted another SSH connection.
 
 ```text
 ssh -l cisco 192.168.10.1
 ```
 
-The connection succeeded because PC-Admin is permitted by the VTY ACL.
+![Authorized SSH Access](./images/06-authorized-ssh-access.png)
 
-No additional screenshot is needed because successful SSH access has already been demonstrated.
+The connection succeeded because PC-Admin is permitted by the VTY ACL.
 
 ---
 
@@ -264,11 +264,9 @@ PC-Test at `192.168.10.12` attempted to connect to R0 through SSH.
 ssh -l cisco 192.168.10.1
 ```
 
-![Unauthorized SSH Blocked](./images/05-unauthorized-ssh-blocked.png)
+![Unauthorized SSH Blocked](./images/07-unauthorized-ssh-blocked.png)
 
-The SSH connection failed.
-
-PC-Test could still ping R0.
+The SSH connection failed, but PC-Test could still ping R0.
 
 ```text
 PC-Test ping → Works
@@ -287,9 +285,9 @@ PC-Admin attempted an SSH connection using incorrect credentials.
 ssh -l wronguser 192.168.10.1
 ```
 
-![Failed Authentication](./images/06-failed-authentication.png)
+![Failed Authentication](./images/08-failed-authentication.png)
 
-The SSH connection reached the device, but authentication failed.
+The connection reached the device, but authentication failed.
 
 This confirmed that being an authorized source does not bypass user authentication.
 
@@ -303,9 +301,9 @@ While PC-Admin had an active SSH connection to R0, the session was verified from
 show ssh
 ```
 
-![Active SSH Session](./images/07-active-ssh-session.png)
+![Active SSH Session](./images/09-active-ssh-session.png)
 
-The output showed the active SSH session for the `cisco` user.
+The output confirmed that an SSH session for the `cisco` user was active.
 
 ---
 
@@ -317,7 +315,7 @@ The final VTY configuration was verified with:
 show running-config | section line vty
 ```
 
-![Final VTY Configuration](./images/08-final-vty-config.png)
+![Final VTY Configuration](./images/10-final-vty-config.png)
 
 The important settings are:
 
