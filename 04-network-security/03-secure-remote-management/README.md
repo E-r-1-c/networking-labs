@@ -169,7 +169,7 @@ line vty 0 15
  transport input ssh
 ```
 
-`transport input ssh` allows SSH remote access while blocking Telnet.
+The VTY transport setting is restricted to SSH, which allows SSH remote access while blocking Telnet.
 
 A standard ACL was then created so only PC-Admin could access the VTY lines.
 
@@ -186,15 +186,6 @@ line vty 0 15
 ```
 
 Unlike an interface ACL, this ACL controls access specifically to the device's remote-management lines.
-
-The final VTY configuration uses:
-
-```text
-line vty 0 15
- login local
- transport input ssh
- access-class VTY-MANAGEMENT in
-```
 
 ---
 
